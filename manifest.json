@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "name": "Twitter Post Tracker",
+  "description": "This extension tracks the X posts the user views and saves it to view later",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "webNavigation",
+    "storage",
+    "tabs",
+    "https://twitter.com/"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://twitter.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "browser_action": {
+    "default_icon": {
+        "16": "images/Rectangle 2.png",
+        "48": "images/Rectangle 3.png",
+        "128": "images/Rectangle 4.png"
+    },
+    "default_title": "My Extension",
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "16": "images/Rectangle 2.png",
+    "48": "images/Rectangle 3.png",
+    "128": "images/Rectangle 4.png"
+  },
+  "web_accessible_resources": [
+    "styles.css"
+  ]
+}

@@ -1,0 +1,69 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full height of the viewport */
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    width: 300px; /* Set fixed width */
+    max-width: 800px; /* Increased maximum width */
+    min-width: 300px; /* Minimum width to ensure it's not too narrow */
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 10px; /* Reduced space between container items */
+}
+
+.header {
+    text-align: start;
+}
+
+h1 {
+    color: #020d14;
+    margin: 0; /* Remove margin to reduce space */
+}
+
+p {
+    color: gray; /* Set color to gray */
+    margin: 5px 0; /* Reduced margin to decrease space */
+}
+
+#urlList {
+    list-style: none;
+    width: 100%;
+    padding: 0;
+    margin: 10px 0; /* Reduced margin */
+}
+
+#urlList div {
+    width: calc(100% - 20px); /* Adjust width to account for padding */
+    margin-bottom: 5px; /* Reduced space between items */
+    cursor: pointer;
+    transition: text-decoration 0.3s; /* Smooth transition for text decoration */
+    white-space: nowrap; /* Prevent text wrapping */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+}
+
+#urlList div:hover {
+    text-decoration: underline; /* Underline on hover */
+}
+
+button {
+    padding: 10px 20px;
+    color: #fff;
+    background-color: #020d14;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
