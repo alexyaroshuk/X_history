@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Twitter Post Tracker",
+  "name": "X History",
   "description": "This extension tracks the X posts the user views and saves it to view later",
   "version": "1.0",
   "permissions": [
@@ -8,33 +8,37 @@
     "webNavigation",
     "storage",
     "tabs",
+    "https://publish.twitter.com/",
     "https://twitter.com/"
   ],
+  "content_security_policy": "script-src 'self' https://platform.twitter.com https://twitter.com; ; object-src 'self'",
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
-  "content_scripts": [
+"content_scripts": [
     {
       "matches": ["https://twitter.com/*"],
-      "js": ["content.js"]
+      "js": ["injectSidebar.js"]
     }
   ],
   "browser_action": {
     "default_icon": {
-        "16": "images/Rectangle 2.png",
-        "48": "images/Rectangle 3.png",
-        "128": "images/Rectangle 4.png"
+      "16": "images/16.png",
+      "48": "images/48.png",
+      "128": "images/128.png"
     },
-    "default_title": "My Extension",
-    "default_popup": "popup.html"
+    "default_title": "My Extension"
   },
   "icons": {
-    "16": "images/Rectangle 2.png",
-    "48": "images/Rectangle 3.png",
-    "128": "images/Rectangle 4.png"
+    "16": "images/16.png",
+    "48": "images/48.png",
+    "128": "images/128.png"
   },
   "web_accessible_resources": [
+    "sidebar.js",
+    "twitter-widgets-loader.js",
+    "sidebar.html",
     "styles.css"
   ]
 }
