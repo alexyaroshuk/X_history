@@ -81,16 +81,36 @@ p {
     transition: background-color 0.3s;
 }
 
+.url-link-new {
+    animation: slideDown 0.3s forwards;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
 .url-link:hover {
     background-color: #e0e0e0;
 }
 
-.loading {
-    text-align: center;
-    padding: 10px;
-    font-size: 16px;
-    color: #000; /* Ensure there's enough contrast */
-    background-color: #f3f3f3; /* Light background for the loading text */
+.tweet-embed-new {
+    animation: slideDown 1s forwards;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 button {
