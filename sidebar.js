@@ -1,9 +1,24 @@
+// Initialize or retrieve the view state
+let isEmbeddedViewVisible =
+  localStorage.getItem("isEmbeddedViewVisible") === "true";
+
 document.addEventListener("DOMContentLoaded", function () {
   const clearButton = document.getElementById("clearButton");
 
   const toggleViewButton = document.getElementById("toggleViewButton");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
+
+  let singleSkeletonCard = document.getElementById("singleSkeletonCard");
+
+  // Check if the skeleton card exists, if not, create and append it
+  if (!singleSkeletonCard) {
+    singleSkeletonCard = document.createElement("div");
+    singleSkeletonCard.id = "singleSkeletonCard";
+    singleSkeletonCard.className = "skeleton-card";
+    singleSkeletonCard.style.display = "none"; // Initially hidden
+    tweetEmbedContainer.prepend(singleSkeletonCard);
+  }
 
   const emptyList = document.getElementById("emptyList");
 
@@ -12,58 +27,52 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeButton = document.getElementById("closeButton");
   console.log("Close button:", closeButton); // Check if the button is found
 
-  tweetEmbedContainer.style.display = "block"; // Ensure embedded view is visible
-  simpleUrlList.style.display = "none"; // Ensure simple view is hidden
-  console.log("Embedded view display:", tweetEmbedContainer.style.display);
-  console.log("Simple view display:", simpleUrlList.style.display);
-
-  toggleViewButton.textContent = "Show Simple View";
-  // Fetch and display URLs in the embedded view
-  chrome.storage.local.get({ urls: [] }, function (data) {
-    updateUrlList(data.urls); // This should handle displaying the correct view based on URLs
-  });
+  // Set initial display based on the persisted state or default
+  tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
+  simpleUrlList.style.display = isEmbeddedViewVisible ? "none" : "block";
+  toggleViewButton.textContent = isEmbeddedViewVisible
+    ? "Show Simple View"
+    : "Show Embedded View";
 
   toggleViewButton.addEventListener("click", function () {
-    const skeletonContainer = document.querySelector(".skeleton-container");
-    chrome.storage.local.get({ urls: [] }, function (data) {
-      let urls = data.urls; // Retrieve URLs when needed
-      console.log("Toggling view");
-      if (tweetEmbedContainer.style.display === "none") {
-        console.log("Showing embedded view");
-        tweetEmbedContainer.style.display = "block";
-        simpleUrlList.style.display = "none";
-        toggleViewButton.textContent = "Show Simple View";
+    // Toggle the state of isEmbeddedViewVisible
+    isEmbeddedViewVisible = !isEmbeddedViewVisible;
+    localStorage.setItem(
+      "isEmbeddedViewVisible",
+      isEmbeddedViewVisible.toString()
+    );
 
-        // Clear and repopulate embedded tweets only if it's empty
-        if (!tweetEmbedContainer.hasChildNodes()) {
-          urls.forEach((url) => {
-            if (tweetCache[url]) {
-              const tweetDiv = document.createElement("div");
-              tweetDiv.innerHTML = tweetCache[url];
-              tweetEmbedContainer.appendChild(tweetDiv);
-              tweetDiv.style.visibility = "visible";
-            } else {
-              embedTweet(url);
-            }
-          });
-        }
-      } else {
-        console.log("Showing simple view");
-        tweetEmbedContainer.style.display = "none";
-        skeletonContainer.style.display = "none";
-        simpleUrlList.style.display = "block";
-        toggleViewButton.textContent = "Show Embedded View";
-      }
-    });
+    console.log("Toggling view");
+    if (isEmbeddedViewVisible) {
+      console.log("Showing embedded view");
+      tweetEmbedContainer.style.display = "block";
+      simpleUrlList.style.display = "none";
+      toggleViewButton.textContent = "Show Simple View";
+
+      // Get the URLs from the simple URL list
+      const simpleUrls = [...simpleUrlList.querySelectorAll("a")].map(
+        (link) => link.href
+      );
+
+      // Filter out the URLs that are already in the tweet cache
+      const newUrls = simpleUrls.filter((url) => !(url in tweetCache));
+
+      // Embed the new tweets
+      newUrls.forEach((url) => {
+        embedTweet(url);
+      });
+    } else {
+      console.log("Showing simple view");
+      tweetEmbedContainer.style.display = "none";
+      simpleUrlList.style.display = "block";
+      toggleViewButton.textContent = "Show Embedded View";
+    }
   });
 
   if (closeButton) {
     closeButton.addEventListener("click", function () {
-      console.log("clicked close"); // Debug log
       chrome.runtime.sendMessage({ action: "toggleSidebar", visible: false });
     });
-  } else {
-    console.log("Close button not found");
   }
 });
 
@@ -105,16 +114,19 @@ let twitterWidgetsLoaded = new Promise((resolve, reject) => {
 loadTwitterScript(3); // Try up to 3 times to load the script
 
 // Cache for storing tweet HTML content
-const tweetCache = {};
+let tweetCache = {};
 
 function embedTweet(url) {
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const singleSkeletonCard = document.getElementById("singleSkeletonCard");
 
-  // Move the skeleton card to the top of the container
+  // Ensure the skeleton card is at the top of the container
   tweetEmbedContainer.prepend(singleSkeletonCard);
+
   // Show skeleton card
   singleSkeletonCard.style.display = "block";
+
+  // Show skeleton card
 
   fetch(
     `https://publish.twitter.com/oembed?url=${encodeURIComponent(
@@ -159,6 +171,13 @@ function updateUrlList(urls) {
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const toggleViewButton = document.getElementById("toggleViewButton");
 
+  // Update visibility based on isEmbeddedViewVisible
+  tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
+  simpleUrlList.style.display = isEmbeddedViewVisible ? "none" : "block";
+  toggleViewButton.textContent = isEmbeddedViewVisible
+    ? "Show Simple View"
+    : "Show Embedded View";
+
   if (urls.length === 0) {
     emptyList.style.display = "block";
     tweetEmbedContainer.style.display = "none";
@@ -166,6 +185,11 @@ function updateUrlList(urls) {
     toggleViewButton.style.display = "none";
     clearButton.style.display = "none";
   } else {
+    if (isEmbeddedViewVisible) {
+      tweetEmbedContainer.style.display = "block";
+    } else {
+      simpleUrlList.style.display = "block";
+    }
     emptyList.style.display = "none";
     toggleViewButton.style.display = "block";
     clearButton.style.display = "block";
@@ -174,40 +198,37 @@ function updateUrlList(urls) {
       [...simpleUrlList.querySelectorAll("a")].map((link) => link.href)
     );
 
-    // Iterate over the provided URLs
-    urls.forEach((url) => {
-      if (!existingUrls.has(url)) {
-        // This URL is new, create a link for it
-        const link = document.createElement("a");
-        link.href = url;
-        link.textContent = url;
-        link.className = "url-link";
-        link.target = "_blank";
+    const newUrls = urls.filter((url) => !existingUrls.has(url));
 
-        // Apply the animation class to the new link
-        link.classList.add("url-link-new");
+    // Iterate over the new URLs
+    newUrls.forEach((url) => {
+      // Create a link for the new URL
+      const link = document.createElement("a");
+      link.href = url;
+      link.textContent = url;
+      link.className = "url-link";
+      link.target = "_blank";
 
-        // Prepend the new link to the list to show newest on top
-        simpleUrlList.prepend(link);
+      // Apply the animation class to the new link
+      link.classList.add("url-link-new");
 
-        // Remove the animation class after the animation duration
-        setTimeout(() => {
-          link.classList.remove("url-link-new");
-        }, 1000);
+      // Prepend the new link to the list to show newest on top
+      simpleUrlList.prepend(link);
 
-        // Add the URL to the set of existing URLs
-        existingUrls.add(url);
-      }
+      // Remove the animation class after the animation duration
+      setTimeout(() => {
+        link.classList.remove("url-link-new");
+      }, 1000);
+
+      // Add the URL to the set of existing URLs
+      existingUrls.add(url);
     });
 
     // Conditionally populate the embedded tweets based on current visibility
-    if (tweetEmbedContainer.style.display === "block") {
-      urls.forEach((url) => {
-        if (!tweetCache[url]) {
-          embedTweet(url);
-        }
+    if (isEmbeddedViewVisible) {
+      newUrls.forEach((url) => {
+        embedTweet(url);
       });
-    } else {
     }
   }
 }
@@ -229,7 +250,48 @@ clearButton.addEventListener("click", function () {
     )
   ) {
     chrome.storage.local.set({ urls: [] }, () => {
+      // Clear the simple URL list
+      const simpleUrlList = document.getElementById("simpleUrlList");
+      while (simpleUrlList.firstChild) {
+        simpleUrlList.removeChild(simpleUrlList.firstChild);
+      }
+
+      // Clear the tweet embed container
+      const tweetEmbedContainer = document.getElementById(
+        "tweetEmbedContainer"
+      );
+      while (tweetEmbedContainer.firstChild) {
+        tweetEmbedContainer.removeChild(tweetEmbedContainer.firstChild);
+      }
+
+      // Recreate the skeleton card
+      const skeletonCard = document.createElement("div");
+      skeletonCard.id = "singleSkeletonCard";
+      skeletonCard.style.display = "none"; // Initially hidden
+      skeletonCard.className = "skeleton-card"; // Add any necessary classes
+      tweetEmbedContainer.appendChild(skeletonCard);
+
+      // Clear the tweet cache
+      tweetCache = {};
+
+      // Update UI elements
       updateUrlList([]);
+
+      // Maintain the current view state
+      localStorage.setItem("isEmbeddedViewVisible", isEmbeddedViewVisible);
     });
   }
 });
+
+function showError(errorMessage) {
+  const errorContainer = document.getElementById("errorContainer");
+  errorContainer.textContent = errorMessage;
+  errorContainer.style.display = "block";
+}
+
+// Replace console.error with a custom function
+const originalConsoleError = console.error;
+console.error = function (...args) {
+  originalConsoleError.apply(console, args);
+  showError(args.join(" "));
+};
