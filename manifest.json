@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "X History",
-  "description": "This extension tracks the X posts the user views and saves it to view later",
+  "description": "This extension tracks the X posts the user views and saves them for later viewing",
   "version": "1.0",
   "permissions": [
     "activeTab",
@@ -9,17 +9,26 @@
     "storage",
     "tabs",
     "https://publish.twitter.com/",
-    "https://twitter.com/"
+    "https://api.twitter.com/",
+    "https://cdn.syndication.twimg.com/",
+    "https://platform.twitter.com/",
+    "https://x.com/"
   ],
-  "content_security_policy": "script-src 'self' https://platform.twitter.com https://twitter.com; ; object-src 'self'",
+  "content_security_policy": "script-src 'self' https://platform.twitter.com https://x.com; object-src 'self'",
   "background": {
-    "scripts": ["background.js"],
+    "scripts": [
+      "background.js"
+    ],
     "persistent": false
   },
-"content_scripts": [
+  "content_scripts": [
     {
-      "matches": ["https://twitter.com/*"],
-      "js": ["injectSidebar.js"]
+      "matches": [
+        "https://x.com/*"
+      ],
+      "js": [
+        "injectSidebar.js"
+      ]
     }
   ],
   "browser_action": {
@@ -37,7 +46,6 @@
   },
   "web_accessible_resources": [
     "sidebar.js",
-    "twitter-widgets-loader.js",
     "sidebar.html",
     "styles.css"
   ]

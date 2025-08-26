@@ -2,6 +2,47 @@
 let isEmbeddedViewVisible =
   localStorage.getItem("isEmbeddedViewVisible") === "true";
 
+// Debug function to test Twitter oEmbed endpoints
+function debugTwitterEndpoints() {
+  const testUrl = "https://x.com/elonmusk/status/123456789";
+  const endpoints = [
+    'https://publish.twitter.com/oembed',
+    'https://api.twitter.com/1.1/statuses/oembed.json',
+    'https://cdn.syndication.twimg.com/widgets/tweet'
+  ];
+
+  console.log('Testing Twitter oEmbed endpoints...');
+
+  endpoints.forEach((endpoint, index) => {
+    const url = `${endpoint}?url=${encodeURIComponent(testUrl)}&omit_script=1`;
+    console.log(`Testing endpoint ${index + 1}: ${endpoint}`);
+
+    fetch(url)
+      .then(response => {
+        console.log(`Endpoint ${index + 1} response:`, {
+          status: response.status,
+          statusText: response.statusText,
+          contentType: response.headers.get('content-type'),
+          ok: response.ok
+        });
+
+        if (response.ok) {
+          return response.text().then(text => {
+            console.log(`Endpoint ${index + 1} content preview:`, text.substring(0, 200));
+          });
+        }
+      })
+      .catch(error => {
+        console.error(`Endpoint ${index + 1} error:`, error);
+      });
+  });
+}
+
+// Run debug test when sidebar loads (for development)
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  setTimeout(debugTwitterEndpoints, 2000);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   const clearButton = document.getElementById("clearButton");
 
@@ -76,12 +117,39 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-function loadTwitterScript(attempts) {
+function loadTwitterScript(attempts = 3) {
   return new Promise((resolve, reject) => {
     if (attempts <= 0) {
       reject(
         new Error("Failed to load Twitter Widgets JS after several attempts")
       );
+      return;
+    }
+
+    // Check if already loaded
+    if (window.twttr && window.twttr.widgets) {
+      console.log("Twitter Widgets already available.");
+      resolve();
+      return;
+    }
+
+    // Check if script is already being loaded
+    if (document.querySelector('script[src*="widgets.js"]')) {
+      console.log("Twitter Widgets script already loading, waiting...");
+      // Wait for the existing script to load
+      const checkInterval = setInterval(() => {
+        if (window.twttr && window.twttr.widgets) {
+          clearInterval(checkInterval);
+          console.log("Twitter Widgets loaded from existing script.");
+          resolve();
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error("Timeout waiting for existing script to load"));
+      }, 10000);
       return;
     }
 
@@ -94,14 +162,20 @@ function loadTwitterScript(attempts) {
     };
     script.onerror = () => {
       console.error("Failed to load Twitter Widgets JS, retrying...");
-      loadTwitterScript(attempts - 1)
-        .then(resolve)
-        .catch(reject);
+      // Remove the failed script
+      script.remove();
+      // Retry with exponential backoff
+      setTimeout(() => {
+        loadTwitterScript(attempts - 1)
+          .then(resolve)
+          .catch(reject);
+      }, Math.pow(2, 3 - attempts) * 1000); // Exponential backoff: 1s, 2s, 4s
     };
     document.head.appendChild(script);
   });
 }
 
+// Initialize Twitter widgets loading promise
 let twitterWidgetsLoaded = new Promise((resolve, reject) => {
   if (window.twttr && window.twttr.widgets) {
     console.log("Twitter Widgets already available.");
@@ -110,8 +184,6 @@ let twitterWidgetsLoaded = new Promise((resolve, reject) => {
     loadTwitterScript(3).then(resolve).catch(reject);
   }
 });
-
-loadTwitterScript(3); // Try up to 3 times to load the script
 
 // Cache for storing tweet HTML content
 let tweetCache = {};
@@ -126,15 +198,59 @@ function embedTweet(url) {
   // Show skeleton card
   singleSkeletonCard.style.display = "block";
 
-  // Show skeleton card
+  // Try multiple Twitter oEmbed endpoints
+  const tryOEmbedEndpoint = (endpoint) => {
+    return fetch(
+      `${endpoint}?url=${encodeURIComponent(url)}&omit_script=1&hide_thread=true`
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          return response.text().then(text => {
+            console.error('Response is not JSON:', text.substring(0, 200));
+            throw new Error('Response is not JSON');
+          });
+        }
+        return response.json();
+      });
+  };
 
-  fetch(
-    `https://publish.twitter.com/oembed?url=${encodeURIComponent(
-      url
-    )}&omit_script=1&hide_thread=true`
-  )
-    .then((response) => response.json())
+  // Try different endpoints in order
+  const endpoints = [
+    'https://publish.twitter.com/oembed',
+    'https://api.twitter.com/1.1/statuses/oembed.json',
+    'https://cdn.syndication.twimg.com/widgets/tweet'
+  ];
+
+  let currentEndpointIndex = 0;
+
+  const tryNextEndpoint = () => {
+    if (currentEndpointIndex >= endpoints.length) {
+      throw new Error('All Twitter oEmbed endpoints failed');
+    }
+
+    const endpoint = endpoints[currentEndpointIndex];
+    console.log(`Trying Twitter oEmbed endpoint: ${endpoint}`);
+
+    return tryOEmbedEndpoint(endpoint)
+      .catch((error) => {
+        console.error(`Failed with endpoint ${endpoint}:`, error);
+        currentEndpointIndex++;
+        if (currentEndpointIndex < endpoints.length) {
+          return tryNextEndpoint();
+        }
+        throw error;
+      });
+  };
+
+  tryNextEndpoint()
     .then((data) => {
+      console.log('Twitter oEmbed response:', data);
+
       if (data.html) {
         const tweetDiv = document.createElement("div");
         tweetDiv.innerHTML = data.html;
@@ -142,26 +258,57 @@ function embedTweet(url) {
         tweetDiv.style.overflow = "hidden"; // Prevent content from spilling out
         tweetEmbedContainer.prepend(tweetDiv); // Prepend to add to the beginning
 
-        twttr.widgets.load(tweetDiv).then(() => {
-          tweetDiv.style.height = ""; // Restore the height
-          tweetDiv.style.overflow = ""; // Restore overflow behavior
-          tweetDiv.className = "tweet-embed-new"; // Apply animation class after loading
-          tweetCache[url] = tweetDiv.innerHTML; // Cache the fully rendered HTML content
-          console.log("Tweet embedded and UI loaded for URL:", url);
+        // Ensure Twitter widgets are loaded before trying to use them
+        twitterWidgetsLoaded.then(() => {
+          if (window.twttr && window.twttr.widgets) {
+            twttr.widgets.load(tweetDiv).then(() => {
+              tweetDiv.style.height = ""; // Restore the height
+              tweetDiv.style.overflow = ""; // Restore overflow behavior
+              tweetDiv.className = "tweet-embed-new"; // Apply animation class after loading
+              tweetCache[url] = tweetDiv.innerHTML; // Cache the fully rendered HTML content
+              console.log("Tweet embedded and UI loaded for URL:", url);
 
-          // Remove the animation class after the animation duration
-          setTimeout(() => {
-            tweetDiv.classList.remove("tweet-embed-new");
-          }, 1000);
+              // Remove the animation class after the animation duration
+              setTimeout(() => {
+                tweetDiv.classList.remove("tweet-embed-new");
+              }, 1000);
 
-          // Hide skeleton card
+              // Hide skeleton card
+              singleSkeletonCard.style.display = "none";
+            }).catch((error) => {
+              console.error("Error loading tweet widget:", error);
+              singleSkeletonCard.style.display = "none";
+            });
+          } else {
+            console.error("Twitter widgets not available");
+            singleSkeletonCard.style.display = "none";
+          }
+        }).catch((error) => {
+          console.error("Error loading Twitter widgets:", error);
           singleSkeletonCard.style.display = "none";
         });
+      } else {
+        console.error("No HTML content in oEmbed response:", data);
+        singleSkeletonCard.style.display = "none";
       }
     })
     .catch((error) => {
       console.error("Error embedding tweet:", error);
-      // Hide skeleton card even if there's an error
+
+      // Fallback: create a simple link instead of embedded tweet
+      const fallbackDiv = document.createElement("div");
+      fallbackDiv.className = "tweet-fallback";
+      fallbackDiv.innerHTML = `
+        <div style="padding: 15px; border: 1px solid #ccc; border-radius: 8px; margin: 10px 0;">
+          <p style="margin: 0 0 10px 0; color: #666;">Tweet preview unavailable</p>
+          <a href="${url}" target="_blank" style="color: #1da1f2; text-decoration: none; word-break: break-all;">
+            ${url}
+          </a>
+        </div>
+      `;
+      tweetEmbedContainer.prepend(fallbackDiv);
+
+      // Hide skeleton card
       singleSkeletonCard.style.display = "none";
     });
 }

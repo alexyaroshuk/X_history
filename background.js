@@ -53,13 +53,57 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "fetchTweet") {
-    const oEmbedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(
-      request.url
-    )}&omit_script=1`;
+    // Try multiple Twitter oEmbed endpoints
+    const tryOEmbedEndpoint = (endpoint) => {
+      const oEmbedUrl = `${endpoint}?url=${encodeURIComponent(request.url)}&omit_script=1`;
+      return fetch(oEmbedUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+              console.error('Response is not JSON:', text.substring(0, 200));
+              throw new Error('Response is not JSON');
+            });
+          }
+          return response.json();
+        });
+    };
 
-    fetch(oEmbedUrl)
-      .then((response) => response.json())
+    // Try different endpoints in order
+    const endpoints = [
+      'https://publish.twitter.com/oembed',
+      'https://api.twitter.com/1.1/statuses/oembed.json',
+      'https://cdn.syndication.twimg.com/widgets/tweet'
+    ];
+
+    let currentEndpointIndex = 0;
+
+    const tryNextEndpoint = () => {
+      if (currentEndpointIndex >= endpoints.length) {
+        throw new Error('All Twitter oEmbed endpoints failed');
+      }
+
+      const endpoint = endpoints[currentEndpointIndex];
+      console.log(`Trying Twitter oEmbed endpoint: ${endpoint}`);
+
+      return tryOEmbedEndpoint(endpoint)
+        .catch((error) => {
+          console.error(`Failed with endpoint ${endpoint}:`, error);
+          currentEndpointIndex++;
+          if (currentEndpointIndex < endpoints.length) {
+            return tryNextEndpoint();
+          }
+          throw error;
+        });
+    };
+
+    tryNextEndpoint()
       .then((data) => {
+        console.log('Twitter oEmbed response:', data);
         sendResponse({ success: true, data: data });
       })
       .catch((error) => {
@@ -80,7 +124,7 @@ function saveUrl(url) {
   console.log("Path Segments:", urlObj.pathname.split("/").filter(Boolean)); // Log the path segments
 
   if (
-    urlObj.hostname === "twitter.com" &&
+    urlObj.hostname === "x.com" &&
     urlObj.pathname.split("/").filter(Boolean).length === 3 &&
     urlObj.pathname.split("/").filter(Boolean)[1] === "status"
   ) {

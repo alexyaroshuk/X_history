@@ -1,57 +1,52 @@
 <!DOCTYPE html>
 <html>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <head>
-    <title>X Post Tracker</title>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link
-      href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <div>
-          <h2>X History</h2>
-          <p>X posts you recently viewed.</p>
-        </div>
-        <div class="button-group">
-          <button id="clearButton">Clear</button>
-          <button id="toggleViewButton">Toggle View</button>
-          <button id="closeButton" class="close-button">
-            <i class="fas fa-times"></i>
-            <!-- Font Awesome icon -->
-          </button>
-        </div>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<head>
+  <title>X Post Tracker</title>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h2>X History</h2>
+        <p>X posts you recently viewed.</p>
       </div>
-
-      <div class="content">
-        <div id="errorContainer" style="display: none; color: red;"></div>
-        <div id="simpleUrlList" style="display: none;"></div>
-        <div class="skeleton-container">
-          <div class="skeleton-card"></div>
-          <div class="skeleton-card"></div>
-          <div class="skeleton-card"></div>
-          <div class="skeleton-card"></div>
-          <div class="skeleton-card"></div>
-        </div>
-        <div id="tweetEmbedContainer">
-          <div id="singleSkeletonCard" class="skeleton-card"></div>
-        </div>
-
-        <p id="emptyList" style="display: none;">
-          You have not read any posts. Start browsing at
-          <a href="http://x.com" target="_blank">x.com</a>.
-        </p>
+      <div class="button-group">
+        <button id="clearButton">Clear</button>
+        <button id="toggleViewButton">Toggle View</button>
+        <button id="closeButton" class="close-button">
+          <i class="fas fa-times"></i>
+          <!-- Font Awesome icon -->
+        </button>
       </div>
     </div>
-    <script src="sidebar.js"></script>
-    <script src="twitter-widgets-loader.js"></script>
-    <script async src="https://platform.twitter.com/widgets.js"></script>
-  </body>
+
+    <div class="content">
+      <div id="errorContainer" style="display: none; color: red;"></div>
+      <div id="simpleUrlList" style="display: none;"></div>
+      <div class="skeleton-container">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      <div id="tweetEmbedContainer">
+        <div id="singleSkeletonCard" class="skeleton-card"></div>
+      </div>
+
+      <p id="emptyList" style="display: none;">
+        You have not read any posts. Start browsing at
+        <a href="http://x.com" target="_blank">x.com</a>.
+      </p>
+    </div>
+  </div>
+  <script src="sidebar.js"></script>
+</body>
+
 </html>
