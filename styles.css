@@ -159,6 +159,8 @@ body {
     padding: 12px;
     background-color: var(--bg-primary);
     max-height: 500px;
+    position: relative; /* Ensure proper positioning context */
+    scroll-behavior: smooth; /* Smooth scrolling */
 }
 
 /* Scrollbar styling */
@@ -194,9 +196,6 @@ p {
 
 #tweetEmbedContainer {
     position: relative;
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 450px;
 }
 
 .skeleton-container {
@@ -370,10 +369,55 @@ button:active {
 
 /* Simple URL list container */
 #simpleUrlList {
-    overflow-y: auto;
-    overflow-x: hidden;
-    max-height: 450px;
     min-height: 100px;
+}
+
+/* Pagination loading state */
+.pagination-loading {
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.pagination-loading .skeleton-card {
+    margin-bottom: 10px;
+    height: 150px;
+}
+
+/* Posts list container */
+#postsListContainer {
+    min-height: 200px;
+}
+
+/* Loading indicator */
+#loadingIndicator {
+    padding: 20px 0;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+#loadingIndicator.active {
+    opacity: 1;
+}
+
+#loadingIndicator .skeleton-card {
+    margin: 10px 0;
+    height: 80px;
+}
+
+/* Style skeleton based on current view */
+.simple-view #loadingIndicator .skeleton-card {
+    height: 42px;
+    border: 1px solid var(--border-color);
+}
+
+.embedded-view #loadingIndicator .skeleton-card {
+    height: 120px;
+}
+
+/* Scroll sentinel for intersection observer */
+#scrollSentinel {
+    height: 1px;
+    margin-top: 10px; /* Minimal space before triggering load */
 }
 
 /* Responsive embedded tweets */

@@ -7,19 +7,7 @@
   <link rel="stylesheet" type="text/css" href="styles.css" />
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-  <script>
-    // Initialize theme immediately to prevent flash
-    (function() {
-      const savedTheme = localStorage.getItem("theme");
-      const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-      if (savedTheme === "dark" || (savedTheme === null && systemPrefersDark)) {
-        document.documentElement.classList.add("dark-theme");
-      } else if (savedTheme === "light") {
-        document.documentElement.classList.add("light-theme");
-      }
-    })();
-  </script>
+  <script src="theme-init.js"></script>
 </head>
 
 <body>
@@ -38,22 +26,32 @@
 
     <div class="content">
       <div id="errorContainer" style="display: none; color: red;"></div>
-      <div id="simpleUrlList" style="display: none;"></div>
-      <div class="skeleton-container">
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-        <div class="skeleton-card"></div>
-      </div>
-      <div id="tweetEmbedContainer">
-        <div id="singleSkeletonCard" class="skeleton-card"></div>
-      </div>
 
       <p id="emptyList" style="display: none;">
         You have not read any posts. Start browsing at
         <a href="http://x.com" target="_blank">x.com</a>.
       </p>
+
+      <!-- Main list container - either simple or embedded -->
+      <div id="postsListContainer">
+        <div id="simpleUrlList" style="display: none;">
+          <!-- URLs will be added here -->
+        </div>
+
+        <div id="tweetEmbedContainer">
+          <!-- Tweets will be added here -->
+        </div>
+      </div>
+
+      <!-- Loading skeleton - shows when scrolling/loading -->
+      <div id="loadingIndicator" style="display: none;">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+
+      <!-- Sentinel element for intersection observer -->
+      <div id="scrollSentinel"></div>
     </div>
   </div>
   <script src="sidebar.js"></script>

@@ -1,0 +1,4 @@
+Uncaught ReferenceError: hideBottomLoader is not defined
+Context
+sidebar.html
+Stack Trace

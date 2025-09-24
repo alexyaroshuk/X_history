@@ -1,0 +1,26 @@
+Twitter Widgets JS loaded successfully.
+00:48:58.941 sidebar.js:167 DOM fully loaded and parsed
+00:48:58.942 sidebar.js:483 [UpdateUrlList] Received 7 total URLs
+00:48:58.942 sidebar.js:536 [LoadNextPage] Loading page 1 of 2
+00:48:58.942 sidebar.js:322 [Pagination] Fetching page 1, posts 1-5 of 7
+00:48:58.942 sidebar.js:606 [LoadingSkeleton] Showing loading skeleton
+00:48:58.942 sidebar.js:592 [LoadNextPage] Ready for next page. Current page index: 1, hasMorePages: true, Total pages: 2
+00:48:58.946 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
+00:48:59.116 sidebar.js:397 Twitter oEmbed response: Object
+00:48:59.153 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
+00:48:59.257 sidebar.js:397 Twitter oEmbed response: Object
+00:48:59.345 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
+00:48:59.352 sidebar.js:397 Twitter oEmbed response: Object
+00:48:59.547 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
+00:48:59.605 sidebar.js:397 Twitter oEmbed response: Object
+00:48:59.784 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
+00:48:59.955 sidebar.js:397 Twitter oEmbed response: Object
+00:49:00.286 sidebar.js:613 [LoadingSkeleton] Hiding loading skeleton
+00:49:00.286 sidebar.js:575 [LoadNextPage] Page 2 loaded successfully
+00:49:01.484 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/ILA_NewsX/status/1970505680122716178
+00:49:01.758 [Violation] Forced reflow while executing JavaScript took 110ms
+00:49:01.984 [Violation] Forced reflow while executing JavaScript took 42ms
+00:49:02.172 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/KoffinKinder/status/1970512878198259983
+00:49:02.173 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/BillGatesOHell/status/1970520325075960011
+00:49:02.214 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/JNovy_/status/1970519374445584468
+00:49:02.215 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/AtomicPirates/status/1970522564960350284

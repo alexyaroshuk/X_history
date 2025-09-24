@@ -17,6 +17,61 @@
 let isEmbeddedViewVisible =
   localStorage.getItem("isEmbeddedViewVisible") === "true";
 
+// Pagination variables
+const POSTS_PER_PAGE = 5;
+let currentPage = 0;
+let allUrls = [];
+let isLoading = false;
+let hasMorePages = false;
+let scrollObserver = null;
+
+// Initialize IntersectionObserver for infinite scroll (best practice)
+function initScrollObserver() {
+  if (scrollObserver) {
+    scrollObserver.disconnect();
+    scrollObserver = null;
+  }
+
+  const sentinel = document.getElementById('scrollSentinel');
+  if (!sentinel) return;
+
+  // Best practice: observe viewport with rootMargin
+  const options = {
+    root: null,
+    rootMargin: '0px 0px 100px 0px',
+    threshold: 0
+  };
+
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && hasMorePages && !isLoading) {
+        console.log('[InfiniteScroll] Loading next page');
+        showLoadingIndicator();
+        loadNextPage();
+      }
+    });
+  }, options);
+
+  scrollObserver.observe(sentinel);
+}
+
+// Simple loading indicator functions
+function showLoadingIndicator() {
+  const indicator = document.getElementById('loadingIndicator');
+  if (indicator) {
+    indicator.style.display = 'block';
+    setTimeout(() => indicator.classList.add('active'), 10);
+  }
+}
+
+function hideLoadingIndicator() {
+  const indicator = document.getElementById('loadingIndicator');
+  if (indicator) {
+    indicator.classList.remove('active');
+    setTimeout(() => indicator.style.display = 'none', 300);
+  }
+}
+
 // Theme management
 function initTheme() {
   const savedTheme = localStorage.getItem("theme");
@@ -70,7 +125,7 @@ function toggleTheme() {
         const urls = [...simpleUrlList.querySelectorAll("a")].map(link => link.href);
 
         // Clear and re-embed tweets with new theme
-        tweetEmbedContainer.innerHTML = '<div id="singleSkeletonCard" class="skeleton-card" style="display: none;"></div>';
+        tweetEmbedContainer.innerHTML = '';
         urls.forEach(url => embedTweet(url));
       }
     }
@@ -144,16 +199,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
 
-  let singleSkeletonCard = document.getElementById("singleSkeletonCard");
-
-  // Check if the skeleton card exists, if not, create and append it
-  if (!singleSkeletonCard) {
-    singleSkeletonCard = document.createElement("div");
-    singleSkeletonCard.id = "singleSkeletonCard";
-    singleSkeletonCard.className = "skeleton-card";
-    singleSkeletonCard.style.display = "none"; // Initially hidden
-    tweetEmbedContainer.prepend(singleSkeletonCard);
-  }
 
   const emptyList = document.getElementById("emptyList");
 
@@ -173,6 +218,30 @@ document.addEventListener("DOMContentLoaded", function () {
     ? "Show Simple View"
     : "Show Embedded View";
 
+  // Functions are now defined globally, no need to redefine them here
+
+  // Fallback: Traditional scroll event listener (in case IntersectionObserver fails)
+  const content = document.querySelector('.content');
+  if (content) {
+    let scrollTimeout;
+    content.addEventListener('scroll', function() {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        // Check if we're near the bottom
+        const scrollPosition = content.scrollTop + content.clientHeight;
+        const scrollHeight = content.scrollHeight;
+        const threshold = 150; // Load when within 150px of bottom
+
+        if (scrollPosition >= scrollHeight - threshold && hasMorePages && !isLoading) {
+          console.log(`[ScrollFallback] Near bottom (${scrollHeight - scrollPosition}px remaining), loading next page`);
+          showLoadingIndicator();
+          loadNextPage();
+        }
+      }, 100); // Debounce
+    });
+    console.log('[ScrollFallback] Traditional scroll listener attached as backup');
+  }
+
   toggleViewButton.addEventListener("click", function () {
     // Toggle the state of isEmbeddedViewVisible
     isEmbeddedViewVisible = !isEmbeddedViewVisible;
@@ -181,30 +250,58 @@ document.addEventListener("DOMContentLoaded", function () {
       isEmbeddedViewVisible.toString()
     );
 
-    console.log("Toggling view");
+    console.log("[ToggleView] Toggling view");
     if (isEmbeddedViewVisible) {
-      console.log("Showing embedded view");
+      console.log("[ToggleView] Showing embedded view");
       tweetEmbedContainer.style.display = "block";
       simpleUrlList.style.display = "none";
       toggleViewButton.textContent = "Show Simple View";
 
-      // Get the URLs from the simple URL list
-      const simpleUrls = [...simpleUrlList.querySelectorAll("a")].map(
-        (link) => link.href
-      );
+      // Clear embedded container and reload with pagination
+      tweetEmbedContainer.innerHTML = '';
+      tweetCache = {};
 
-      // Filter out the URLs that are already in the tweet cache
-      const newUrls = simpleUrls.filter((url) => !(url in tweetCache));
+      // Reset pagination and load from beginning
+      currentPage = 0;
+      hasMorePages = allUrls.length > POSTS_PER_PAGE;
 
-      // Embed the new tweets
-      newUrls.forEach((url) => {
-        embedTweet(url);
+      // Update content class for embedded view styling
+      const content = document.querySelector('.content');
+      if (content) {
+        content.className = 'content embedded-view';
+      }
+
+      // Re-initialize observer if needed
+      if (hasMorePages) {
+        setTimeout(() => {
+          initScrollObserver();
+        }, 100);
+      }
+
+      // Load first page of embedded tweets
+      const pageUrls = getPaginatedUrls(allUrls, currentPage);
+      console.log(`[ToggleView] Loading ${pageUrls.length} tweets for embedded view`);
+
+      pageUrls.forEach((url, index) => {
+        setTimeout(() => {
+          embedTweet(url);
+        }, index * 200);
       });
+
+      currentPage++;
+      hasMorePages = (currentPage * POSTS_PER_PAGE) < allUrls.length;
+      console.log(`[ToggleView] After loading first page - currentPage: ${currentPage}, hasMorePages: ${hasMorePages}`);
     } else {
-      console.log("Showing simple view");
+      console.log("[ToggleView] Showing simple view");
       tweetEmbedContainer.style.display = "none";
       simpleUrlList.style.display = "block";
       toggleViewButton.textContent = "Show Embedded View";
+
+      // Update content class for simple view styling
+      const content = document.querySelector('.content');
+      if (content) {
+        content.className = 'content simple-view';
+      }
     }
   });
 
@@ -282,15 +379,21 @@ let twitterWidgetsLoaded = new Promise((resolve, reject) => {
 // Cache for storing tweet HTML content
 let tweetCache = {};
 
+// Function to get paginated URLs
+function getPaginatedUrls(urls, page) {
+  const startIndex = page * POSTS_PER_PAGE;
+  const endIndex = startIndex + POSTS_PER_PAGE;
+  console.log(`[Pagination] Fetching page ${page + 1}, posts ${startIndex + 1}-${Math.min(endIndex, urls.length)} of ${urls.length}`);
+  return urls.slice(startIndex, endIndex);
+}
+
+// Function to check if there are more pages
+function checkHasMorePages(urls, currentPage) {
+  return (currentPage + 1) * POSTS_PER_PAGE < urls.length;
+}
+
 function embedTweet(url) {
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
-  const singleSkeletonCard = document.getElementById("singleSkeletonCard");
-
-  // Ensure the skeleton card is at the top of the container
-  tweetEmbedContainer.prepend(singleSkeletonCard);
-
-  // Show skeleton card
-  singleSkeletonCard.style.display = "block";
 
   // Try multiple Twitter oEmbed endpoints
   const tryOEmbedEndpoint = (endpoint) => {
@@ -352,7 +455,9 @@ function embedTweet(url) {
         tweetDiv.innerHTML = data.html;
         tweetDiv.style.height = "0"; // Initially set height to 0 to prevent layout shift
         tweetDiv.style.overflow = "hidden"; // Prevent content from spilling out
-        tweetEmbedContainer.prepend(tweetDiv); // Prepend to add to the beginning
+
+        // Append tweet to container
+        tweetEmbedContainer.appendChild(tweetDiv);
 
         // Ensure Twitter widgets are loaded before trying to use them
         twitterWidgetsLoaded.then(() => {
@@ -369,23 +474,18 @@ function embedTweet(url) {
                 tweetDiv.classList.remove("tweet-embed-new");
               }, 1000);
 
-              // Hide skeleton card
-              singleSkeletonCard.style.display = "none";
+              // Tweet loaded successfully
             }).catch((error) => {
               console.error("Error loading tweet widget:", error);
-              singleSkeletonCard.style.display = "none";
             });
           } else {
             console.error("Twitter widgets not available");
-            singleSkeletonCard.style.display = "none";
           }
         }).catch((error) => {
           console.error("Error loading Twitter widgets:", error);
-          singleSkeletonCard.style.display = "none";
         });
       } else {
         console.error("No HTML content in oEmbed response:", data);
-        singleSkeletonCard.style.display = "none";
       }
     })
     .catch((error) => {
@@ -402,10 +502,9 @@ function embedTweet(url) {
           </a>
         </div>
       `;
-      tweetEmbedContainer.prepend(fallbackDiv);
 
-      // Hide skeleton card
-      singleSkeletonCard.style.display = "none";
+      // Append fallback to container
+      tweetEmbedContainer.appendChild(fallbackDiv);
     });
 }
 
@@ -413,6 +512,13 @@ function updateUrlList(urls) {
   const simpleUrlList = document.getElementById("simpleUrlList");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const toggleViewButton = document.getElementById("toggleViewButton");
+
+  console.log(`[UpdateUrlList] Received ${urls.length} total URLs`);
+
+  // Store all URLs for pagination
+  allUrls = urls;
+  currentPage = 0; // Reset to first page
+  hasMorePages = urls.length > 0; // Initially true if we have any URLs
 
   // Update visibility based on isEmbeddedViewVisible
   tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
@@ -437,42 +543,146 @@ function updateUrlList(urls) {
     toggleViewButton.style.display = "block";
     clearButton.style.display = "block";
 
-    const existingUrls = new Set(
-      [...simpleUrlList.querySelectorAll("a")].map((link) => link.href)
-    );
+    // Clear existing content for fresh pagination (removing any existing loaders)
+    simpleUrlList.innerHTML = '';
+    tweetEmbedContainer.innerHTML = '';
 
-    const newUrls = urls.filter((url) => !existingUrls.has(url));
+    // Load first page
+    loadNextPage();
 
-    // Iterate over the new URLs
-    newUrls.forEach((url) => {
-      // Create a link for the new URL
-      const link = document.createElement("a");
-      link.href = url;
-      link.textContent = url;
-      link.className = "url-link";
-      link.target = "_blank";
+    // Check if there will be more pages
+    const willHaveMore = urls.length > POSTS_PER_PAGE;
+    const scrollTrigger = document.getElementById("scrollTrigger");
 
-      // Apply the animation class to the new link
-      link.classList.add("url-link-new");
-
-      // Prepend the new link to the list to show newest on top
-      simpleUrlList.prepend(link);
-
-      // Remove the animation class after the animation duration
-      setTimeout(() => {
-        link.classList.remove("url-link-new");
-      }, 1000);
-
-      // Add the URL to the set of existing URLs
-      existingUrls.add(url);
-    });
-
-    // Conditionally populate the embedded tweets based on current visibility
-    if (isEmbeddedViewVisible) {
-      newUrls.forEach((url) => {
-        embedTweet(url);
-      });
+    // Update content class for styling
+    const content = document.querySelector('.content');
+    if (content) {
+      content.className = 'content ' + (isEmbeddedViewVisible ? 'embedded-view' : 'simple-view');
     }
+
+    if (scrollTrigger) {
+      scrollTrigger.style.display = willHaveMore ? 'block' : 'none';
+    }
+
+    // Keep loading indicator hidden initially
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    if (loadingIndicator) {
+      loadingIndicator.style.display = 'none';
+      loadingIndicator.classList.remove('active');
+    }
+
+    if (willHaveMore) {
+      // Initialize observer after showing trigger
+      setTimeout(() => {
+        initScrollObserver();
+      }, 100);
+    }
+  }
+}
+
+function loadNextPage() {
+  if (isLoading) {
+    console.log(`[LoadNextPage] Skipping - already loading`);
+    return;
+  }
+
+  // Check if we actually have more pages to load
+  if (currentPage * POSTS_PER_PAGE >= allUrls.length) {
+    console.log(`[LoadNextPage] No more pages to load. Current page: ${currentPage}, Total URLs: ${allUrls.length}`);
+    hasMorePages = false;
+    return;
+  }
+
+  isLoading = true;
+  const loadingPageNumber = currentPage + 1; // Store the actual page number being loaded
+  console.log(`[LoadNextPage] Loading page ${loadingPageNumber} of ${Math.ceil(allUrls.length / POSTS_PER_PAGE)}`);
+
+  const simpleUrlList = document.getElementById("simpleUrlList");
+  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+
+  // Get URLs for current page
+  const pageUrls = getPaginatedUrls(allUrls, currentPage);
+
+  // Show loading skeleton
+  if (isEmbeddedViewVisible) {
+    showLoadingSkeleton();
+  }
+
+  // Process URLs for the current page
+  pageUrls.forEach((url, index) => {
+    // Add to simple list (insert before bottom loader if it exists)
+    const link = document.createElement("a");
+    link.href = url;
+    link.textContent = url;
+    link.className = "url-link";
+    link.target = "_blank";
+    link.classList.add("url-link-new");
+
+    simpleUrlList.appendChild(link);
+
+    setTimeout(() => {
+      link.classList.remove("url-link-new");
+    }, 1000);
+
+    // Add to embedded view if visible
+    if (isEmbeddedViewVisible) {
+      // Add slight delay between embeds to prevent overwhelming the API
+      setTimeout(() => {
+        embedTweet(url);
+
+        // Hide loading skeleton after last item of the page
+        if (index === pageUrls.length - 1) {
+          setTimeout(() => {
+            hideLoadingSkeleton();
+            hideLoadingIndicator();
+            // Add a small delay before allowing next load to prevent rapid consecutive loads
+            setTimeout(() => {
+              isLoading = false;
+              console.log(`[LoadNextPage] Page ${loadingPageNumber} loaded successfully`);
+            }, 300);
+          }, 500);
+        }
+      }, index * 200);
+    }
+  });
+
+  // If not in embedded view, immediately mark as not loading
+  if (!isEmbeddedViewVisible) {
+    isLoading = false;
+    console.log(`[LoadNextPage] Page ${loadingPageNumber} loaded successfully (simple view)`);
+  }
+
+  // Move to next page
+  currentPage++;
+  hasMorePages = (currentPage * POSTS_PER_PAGE) < allUrls.length;
+
+  console.log(`[LoadNextPage] Ready for next page. Current page index: ${currentPage}, hasMorePages: ${hasMorePages}, Total pages: ${Math.ceil(allUrls.length / POSTS_PER_PAGE)}`);
+
+  // Hide loading indicator after loading completes
+  if (!isLoading) {
+    hideLoadingIndicator();
+  }
+}
+
+function showLoadingSkeleton() {
+  const container = document.getElementById("tweetEmbedContainer");
+  const loadingDiv = document.createElement("div");
+  loadingDiv.id = "paginationLoadingSkeleton";
+  loadingDiv.className = "pagination-loading";
+  loadingDiv.innerHTML = `
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  `;
+  container.appendChild(loadingDiv);
+  console.log("[LoadingSkeleton] Showing loading skeleton");
+}
+
+function hideLoadingSkeleton() {
+  const skeleton = document.getElementById("paginationLoadingSkeleton");
+  if (skeleton) {
+    skeleton.remove();
+    console.log("[LoadingSkeleton] Hiding loading skeleton");
   }
 }
 
@@ -493,6 +703,8 @@ clearButton.addEventListener("click", function () {
     )
   ) {
     chrome.storage.local.set({ urls: [] }, () => {
+      console.log("[Clear] Clearing all URLs and resetting pagination");
+
       // Clear the simple URL list
       const simpleUrlList = document.getElementById("simpleUrlList");
       while (simpleUrlList.firstChild) {
@@ -507,15 +719,19 @@ clearButton.addEventListener("click", function () {
         tweetEmbedContainer.removeChild(tweetEmbedContainer.firstChild);
       }
 
-      // Recreate the skeleton card
-      const skeletonCard = document.createElement("div");
-      skeletonCard.id = "singleSkeletonCard";
-      skeletonCard.style.display = "none"; // Initially hidden
-      skeletonCard.className = "skeleton-card"; // Add any necessary classes
-      tweetEmbedContainer.appendChild(skeletonCard);
 
-      // Clear the tweet cache
+      // Clear the tweet cache and pagination state
       tweetCache = {};
+      allUrls = [];
+      currentPage = 0;
+      hasMorePages = false;
+      isLoading = false;
+
+      // Hide loading indicator
+      const loadingIndicator = document.getElementById("loadingIndicator");
+      if (loadingIndicator) {
+        loadingIndicator.style.display = "none";
+      }
 
       // Update UI elements
       updateUrlList([]);

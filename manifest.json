@@ -36,6 +36,7 @@
   "web_accessible_resources": [
     "sidebar.js",
     "sidebar.html",
-    "styles.css"
+    "styles.css",
+    "theme-init.js"
   ]
 }
