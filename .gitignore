@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.zip
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# Chrome extension development
+*.pem
+*.crx
+
+# Personal/Development files
+FEATURE_SUGGESTIONS.md
+TODO.md
+NOTES.md
+errors.txt
+
+# User data (for development)
+user-data/
+test-data/
+
+# OS generated files
+Thumbs.db
+desktop.ini
