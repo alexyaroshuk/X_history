@@ -24,8 +24,20 @@
       </div>
     </div>
 
+    <!-- Search bar -->
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search posts..." class="search-input">
+      <button id="searchButton" class="search-button">
+        <i class="fas fa-search"></i>
+      </button>
+      <button id="clearSearchButton" class="clear-search-button" style="display: none;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
     <div class="content">
       <div id="errorContainer" style="display: none; color: red;"></div>
+      <div id="searchResultsInfo" class="search-results-info"></div>
 
       <p id="emptyList" style="display: none;">
         You have not read any posts. Start browsing at
@@ -54,6 +66,7 @@
       <div id="scrollSentinel"></div>
     </div>
   </div>
+  <script src="db.js"></script>
   <script src="sidebar.js"></script>
 </body>
 

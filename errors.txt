@@ -1,4 +1,5 @@
-Uncaught ReferenceError: hideBottomLoader is not defined
+Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules
 Context
 sidebar.html
 Stack Trace
+sidebar.js:533 (anonymous function)

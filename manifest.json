@@ -37,6 +37,7 @@
     "sidebar.js",
     "sidebar.html",
     "styles.css",
-    "theme-init.js"
+    "theme-init.js",
+    "db.js"
   ]
 }

@@ -24,6 +24,9 @@ let allUrls = [];
 let isLoading = false;
 let hasMorePages = false;
 let scrollObserver = null;
+let isSearching = false;
+let currentSearchQuery = '';
+
 
 // Initialize IntersectionObserver for infinite scroll (best practice)
 function initScrollObserver() {
@@ -189,7 +192,9 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
   setTimeout(debugTwitterEndpoints, 2000);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
+  // Initialize database
+  await tweetDB.init();
   // Initialize theme
   initTheme();
 
@@ -198,6 +203,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const toggleViewButton = document.getElementById("toggleViewButton");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
+  const searchInput = document.getElementById("searchInput");
+  const searchButton = document.getElementById("searchButton");
+  const clearSearchButton = document.getElementById("clearSearchButton");
 
 
   const emptyList = document.getElementById("emptyList");
@@ -240,6 +248,51 @@ document.addEventListener("DOMContentLoaded", function () {
       }, 100); // Debounce
     });
     console.log('[ScrollFallback] Traditional scroll listener attached as backup');
+  }
+
+  // Search functionality
+  searchButton.addEventListener("click", performSearch);
+  clearSearchButton.addEventListener("click", clearSearch);
+  searchInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      performSearch();
+    }
+  });
+
+  async function performSearch() {
+    const query = searchInput.value.trim();
+    if (query === currentSearchQuery) return;
+
+    currentSearchQuery = query;
+    isSearching = query.length > 0;
+
+    if (isSearching) {
+      clearSearchButton.style.display = 'block';
+      console.log('[Search] Searching for:', query);
+
+      // Search in IndexedDB
+      const searchResults = await tweetDB.searchTweets(query);
+      const searchUrls = searchResults.map(tweet => tweet.url);
+
+      console.log(`[Search] Found ${searchUrls.length} matching tweets`);
+
+      // Update the display with search results
+      updateUrlList(searchUrls, true);
+    } else {
+      clearSearch();
+    }
+  }
+
+  function clearSearch() {
+    searchInput.value = '';
+    currentSearchQuery = '';
+    isSearching = false;
+    clearSearchButton.style.display = 'none';
+
+    // Reload all URLs from storage
+    chrome.storage.local.get({ urls: [] }, (data) => {
+      updateUrlList(data.urls, false);
+    });
   }
 
   toggleViewButton.addEventListener("click", function () {
@@ -392,8 +445,34 @@ function checkHasMorePages(urls, currentPage) {
   return (currentPage + 1) * POSTS_PER_PAGE < urls.length;
 }
 
-function embedTweet(url) {
+async function embedTweet(url) {
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+
+  // Check if tweet is cached in IndexedDB
+  const cachedTweet = await tweetDB.getTweet(url);
+  if (cachedTweet && cachedTweet.html) {
+    console.log('[Cache] Using cached tweet for:', url);
+    const tweetDiv = document.createElement("div");
+    tweetDiv.innerHTML = cachedTweet.html;
+    tweetDiv.style.height = "0";
+    tweetDiv.style.overflow = "hidden";
+    tweetEmbedContainer.appendChild(tweetDiv);
+
+    // Load Twitter widgets
+    twitterWidgetsLoaded.then(() => {
+      if (window.twttr && window.twttr.widgets) {
+        twttr.widgets.load(tweetDiv).then(() => {
+          tweetDiv.style.height = "";
+          tweetDiv.style.overflow = "";
+          tweetDiv.className = "tweet-embed-new";
+          setTimeout(() => {
+            tweetDiv.classList.remove("tweet-embed-new");
+          }, 1000);
+        });
+      }
+    });
+    return;
+  }
 
   // Try multiple Twitter oEmbed endpoints
   const tryOEmbedEndpoint = (endpoint) => {
@@ -447,10 +526,25 @@ function embedTweet(url) {
   };
 
   tryNextEndpoint()
-    .then((data) => {
+    .then(async (data) => {
       console.log('Twitter oEmbed response:', data);
 
       if (data.html) {
+        // Save to IndexedDB
+        await tweetDB.saveTweet({
+          url: url,
+          html: data.html,
+          authorName: data.author_name,
+          authorUrl: data.author_url,
+          providerName: data.provider_name,
+          providerUrl: data.provider_url,
+          type: data.type,
+          width: data.width,
+          height: data.height,
+          version: data.version,
+          cacheControl: data.cache_age
+        });
+
         const tweetDiv = document.createElement("div");
         tweetDiv.innerHTML = data.html;
         tweetDiv.style.height = "0"; // Initially set height to 0 to prevent layout shift
@@ -508,17 +602,26 @@ function embedTweet(url) {
     });
 }
 
-function updateUrlList(urls) {
+function updateUrlList(urls, isFromSearch = false) {
   const simpleUrlList = document.getElementById("simpleUrlList");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const toggleViewButton = document.getElementById("toggleViewButton");
+  const searchResultsInfo = document.getElementById("searchResultsInfo");
 
-  console.log(`[UpdateUrlList] Received ${urls.length} total URLs`);
+  console.log(`[UpdateUrlList] Received ${urls.length} total URLs${isFromSearch ? ' from search' : ''}`);
 
   // Store all URLs for pagination
   allUrls = urls;
   currentPage = 0; // Reset to first page
   hasMorePages = urls.length > 0; // Initially true if we have any URLs
+
+  // Update search results info
+  if (isFromSearch && currentSearchQuery) {
+    searchResultsInfo.innerHTML = `Found <strong>${urls.length}</strong> posts matching "<strong>${currentSearchQuery}</strong>"`;
+    searchResultsInfo.classList.add('active');
+  } else {
+    searchResultsInfo.classList.remove('active');
+  }
 
   // Update visibility based on isEmbeddedViewVisible
   tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
@@ -686,8 +789,17 @@ function hideLoadingSkeleton() {
   }
 }
 
-chrome.storage.local.get({ urls: [] }, (data) => {
+chrome.storage.local.get({ urls: [] }, async (data) => {
   updateUrlList(data.urls);
+
+  // Pre-fetch tweets for caching if not already cached
+  for (const url of data.urls) {
+    const cached = await tweetDB.getTweet(url);
+    if (!cached) {
+      // Fetch and cache in the background
+      console.log('[Cache] Pre-fetching tweet for caching:', url);
+    }
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -696,12 +808,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-clearButton.addEventListener("click", function () {
+clearButton.addEventListener("click", async function () {
   if (
     confirm(
       "Are you sure you want to clear all URLs? This action cannot be undone."
     )
   ) {
+    // Clear IndexedDB
+    await tweetDB.clearAll();
+
     chrome.storage.local.set({ urls: [] }, () => {
       console.log("[Clear] Clearing all URLs and resetting pagination");
 
