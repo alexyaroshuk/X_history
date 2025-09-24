@@ -8,11 +8,9 @@
     "webNavigation",
     "storage",
     "tabs",
-    "https://publish.twitter.com/",
-    "https://api.twitter.com/",
-    "https://cdn.syndication.twimg.com/",
-    "https://platform.twitter.com/",
-    "https://x.com/"
+    "https://publish.twitter.com/*",
+    "https://api.twitter.com/*",
+    "https://cdn.syndication.twimg.com/*"
   ],
   "content_security_policy": "script-src 'self' https://platform.twitter.com https://x.com; object-src 'self'",
   "background": {
@@ -21,23 +19,14 @@
     ],
     "persistent": false
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://x.com/*"
-      ],
-      "js": [
-        "injectSidebar.js"
-      ]
-    }
-  ],
   "browser_action": {
     "default_icon": {
       "16": "images/16.png",
       "48": "images/48.png",
       "128": "images/128.png"
     },
-    "default_title": "My Extension"
+    "default_title": "X History",
+    "default_popup": "sidebar.html"
   },
   "icons": {
     "16": "images/16.png",

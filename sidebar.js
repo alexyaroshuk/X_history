@@ -1,6 +1,97 @@
+// Initialize theme FIRST before anything else
+(function initThemeImmediately() {
+  const savedTheme = localStorage.getItem("theme");
+  const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  // Apply theme to both html and body
+  if (savedTheme === "dark" || (savedTheme === null && systemPrefersDark)) {
+    document.documentElement.classList.add("dark-theme");
+    document.body.classList.add("dark-theme");
+  } else if (savedTheme === "light") {
+    document.documentElement.classList.add("light-theme");
+    document.body.classList.add("light-theme");
+  }
+})();
+
 // Initialize or retrieve the view state
 let isEmbeddedViewVisible =
   localStorage.getItem("isEmbeddedViewVisible") === "true";
+
+// Theme management
+function initTheme() {
+  const savedTheme = localStorage.getItem("theme");
+  const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (savedTheme === "dark" || (savedTheme === null && systemPrefersDark)) {
+    document.body.classList.add("dark-theme");
+    updateThemeIcon(true);
+  } else if (savedTheme === "light") {
+    document.body.classList.add("light-theme");
+    updateThemeIcon(false);
+  } else {
+    // Use system preference
+    updateThemeIcon(systemPrefersDark);
+  }
+}
+
+function updateThemeIcon(isDark) {
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.textContent = isDark ? "Light" : "Dark";
+  }
+}
+
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.classList.contains("dark-theme");
+
+  if (isDark) {
+    body.classList.remove("dark-theme");
+    body.classList.add("light-theme");
+    localStorage.setItem("theme", "light");
+    updateThemeIcon(false);
+  } else {
+    body.classList.remove("light-theme");
+    body.classList.add("dark-theme");
+    localStorage.setItem("theme", "dark");
+    updateThemeIcon(true);
+  }
+
+  // Refresh tweet embeds if in embedded view
+  if (isEmbeddedViewVisible) {
+    const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+    if (tweetEmbedContainer) {
+      // Clear tweet cache to force reload with new theme
+      tweetCache = {};
+
+      // Get all tweet URLs from the simple list
+      const simpleUrlList = document.getElementById("simpleUrlList");
+      if (simpleUrlList) {
+        const urls = [...simpleUrlList.querySelectorAll("a")].map(link => link.href);
+
+        // Clear and re-embed tweets with new theme
+        tweetEmbedContainer.innerHTML = '<div id="singleSkeletonCard" class="skeleton-card" style="display: none;"></div>';
+        urls.forEach(url => embedTweet(url));
+      }
+    }
+  }
+}
+
+// Listen for system theme changes
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+  const savedTheme = localStorage.getItem("theme");
+  // Only auto-switch if user hasn't manually set a preference
+  if (!savedTheme) {
+    if (e.matches) {
+      document.body.classList.add("dark-theme");
+      document.body.classList.remove("light-theme");
+    } else {
+      document.body.classList.add("light-theme");
+      document.body.classList.remove("dark-theme");
+    }
+    updateThemeIcon(e.matches);
+  }
+});
 
 // Debug function to test Twitter oEmbed endpoints
 function debugTwitterEndpoints() {
@@ -44,8 +135,11 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
 }
 
 document.addEventListener("DOMContentLoaded", function () {
-  const clearButton = document.getElementById("clearButton");
+  // Initialize theme
+  initTheme();
 
+  const clearButton = document.getElementById("clearButton");
+  const themeToggle = document.getElementById("themeToggle");
   const toggleViewButton = document.getElementById("toggleViewButton");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
@@ -65,8 +159,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("DOM fully loaded and parsed");
 
-  const closeButton = document.getElementById("closeButton");
-  console.log("Close button:", closeButton); // Check if the button is found
+  // Close button removed - no longer needed in popup mode
+
+  // Theme toggle button event listener
+  if (themeToggle) {
+    themeToggle.addEventListener("click", toggleTheme);
+  }
 
   // Set initial display based on the persisted state or default
   tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
@@ -110,11 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  if (closeButton) {
-    closeButton.addEventListener("click", function () {
-      chrome.runtime.sendMessage({ action: "toggleSidebar", visible: false });
-    });
-  }
+  // Close button handler removed - popup closes automatically
 });
 
 function loadTwitterScript(attempts = 3) {
@@ -200,8 +294,10 @@ function embedTweet(url) {
 
   // Try multiple Twitter oEmbed endpoints
   const tryOEmbedEndpoint = (endpoint) => {
+    const isDarkMode = document.body.classList.contains("dark-theme");
+    const theme = isDarkMode ? "dark" : "light";
     return fetch(
-      `${endpoint}?url=${encodeURIComponent(url)}&omit_script=1&hide_thread=true`
+      `${endpoint}?url=${encodeURIComponent(url)}&omit_script=1&hide_thread=true&theme=${theme}`
     )
       .then((response) => {
         if (!response.ok) {

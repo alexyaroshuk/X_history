@@ -1,64 +1,222 @@
+/* CSS Variables for theming */
+:root {
+    /* Light theme (default) */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-hover: #e0e0e0;
+    --bg-card: #f0f0f0;
+    --bg-fallback: #f9f9f9;
+
+    --text-primary: #020d14;
+    --text-secondary: #666666;
+    --text-muted: gray;
+
+    --border-color: #e0e0e0;
+    --border-hover: #1da1f2;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-hover: rgba(29, 161, 242, 0.1);
+
+    --button-bg: #1a1a1a;
+    --button-hover: #000000;
+    --button-text: #ffffff;
+
+    --accent: #1da1f2;
+    --accent-hover: #0d8bd9;
+
+    --skeleton-primary: #e0e0e0;
+    --skeleton-secondary: #f0f0f0;
+}
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #15202b;
+        --bg-secondary: #192734;
+        --bg-hover: #22303c;
+        --bg-card: #192734;
+        --bg-fallback: #1e2732;
+
+        --text-primary: #ffffff;
+        --text-secondary: #8b98a5;
+        --text-muted: #71767b;
+
+        --border-color: #38444d;
+        --border-hover: #1da1f2;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --shadow-hover: rgba(29, 161, 242, 0.2);
+
+        --button-bg: #1da1f2;
+        --button-hover: #1a8cd8;
+        --button-text: #ffffff;
+
+        --accent: #1da1f2;
+        --accent-hover: #1a8cd8;
+
+        --skeleton-primary: #38444d;
+        --skeleton-secondary: #273340;
+    }
+}
+
+/* Manual theme toggle classes */
+html.light-theme,
+body.light-theme {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-hover: #e0e0e0;
+    --bg-card: #f0f0f0;
+    --bg-fallback: #f9f9f9;
+
+    --text-primary: #020d14;
+    --text-secondary: #666666;
+    --text-muted: gray;
+
+    --border-color: #e0e0e0;
+    --border-hover: #1da1f2;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-hover: rgba(29, 161, 242, 0.1);
+
+    --button-bg: #1a1a1a;
+    --button-hover: #000000;
+    --button-text: #ffffff;
+
+    --accent: #1da1f2;
+    --accent-hover: #0d8bd9;
+
+    --skeleton-primary: #e0e0e0;
+    --skeleton-secondary: #f0f0f0;
+}
+
+html.dark-theme,
+body.dark-theme {
+    --bg-primary: #15202b;
+    --bg-secondary: #192734;
+    --bg-hover: #22303c;
+    --bg-card: #192734;
+    --bg-fallback: #1e2732;
+
+    --text-primary: #ffffff;
+    --text-secondary: #8b98a5;
+    --text-muted: #71767b;
+
+    --border-color: #38444d;
+    --border-hover: #1da1f2;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-hover: rgba(29, 161, 242, 0.2);
+
+    --button-bg: #1da1f2;
+    --button-hover: #1a8cd8;
+    --button-text: #ffffff;
+
+    --accent: #1da1f2;
+    --accent-hover: #1a8cd8;
+
+    --skeleton-primary: #38444d;
+    --skeleton-secondary: #273340;
+}
+
+/* Base styles */
 body {
     margin: 0;
     padding: 0;
-    height: 100vh;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
-    font-family: "Roboto", sans-serif;
+    width: 500px;
+    min-height: 200px;
+    max-height: 600px;
+    overflow-x: hidden;
+    font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Full height of the viewport */
+    min-height: 200px;
+    max-height: 600px;
+    width: 100%;
+    background-color: var(--bg-primary);
 }
 
 .header {
     display: flex;
-    justify-content: space-between; /* Aligns children (h2 and button group) on opposite ends */
-    align-items: center; /* Vertically centers the children */
-    background-color: #f8f9fa;
-    padding: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-secondary);
+    padding: 12px 16px;
+    box-shadow: 0 2px 4px var(--shadow);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .button-group {
-    display: flex; /* Aligns buttons in a row */
-    gap: 10px; /* Spaces buttons apart */
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
+
 .content {
-    flex-grow: 1; /* Take up the remaining space */
-    overflow-y: auto; /* Enable vertical scrolling */
-    padding: 10px; /* Padding inside the content area */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    background-color: var(--bg-primary);
+    max-height: 500px;
+}
+
+/* Scrollbar styling */
+.content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+
+.content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 h2 {
-    color: #020d14;
+    color: var(--text-primary);
     margin: 0;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 p {
-    color: gray;
+    color: var(--text-muted);
     margin: 5px 0;
+    font-size: 13px;
 }
 
 #tweetEmbedContainer {
-    position: relative; /* Needed for absolute positioning of children */
-    min-height: 100px; /* Ensure there's enough space for the loading indicator */
-    height: 550px; /* Fixed height to prevent shifting */
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 450px;
 }
 
 .skeleton-container {
-    display: none; /* Hide by default */
+    display: none;
     flex-direction: column;
 }
 
 .skeleton-card {
     width: 100%;
     height: 200px;
-    background: linear-gradient(to right, #ccc 25%, #e0e0e0 50%, #ccc 75%);
+    background: linear-gradient(
+        to right,
+        var(--skeleton-primary) 25%,
+        var(--skeleton-secondary) 50%,
+        var(--skeleton-primary) 75%
+    );
     background-size: 200% 100%;
-    animation: loading 1s infinite linear;
+    animation: loading 1.5s infinite linear;
     margin-bottom: 10px;
+    border-radius: 8px;
 }
 
 @keyframes loading {
@@ -72,83 +230,76 @@ p {
 
 .url-link {
     display: block;
-    padding: 8px;
-    margin: 5px;
-    background-color: #f0f0f0;
-    color: #000;
+    padding: 10px 12px;
+    margin: 6px 0;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
     text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.url-link-new {
-    animation: slideDown 0.3s forwards;
-}
-
-@keyframes slideDown {
-    from {
-        transform: translateY(-20px);
-    }
-    to {
-        transform: translateY(0);
-    }
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    font-size: 14px;
+    word-break: break-all;
+    min-height: 42px;
+    line-height: 1.4;
 }
 
 .url-link:hover {
-    background-color: #e0e0e0;
+    background-color: var(--bg-hover);
+    border-color: var(--border-hover);
 }
 
-.tweet-embed-new {
-    animation: slideDown 1s forwards;
+.url-link-new {
+    animation: fadeIn 0.3s forwards;
 }
 
-@keyframes slideDown {
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
+.tweet-embed-new {
+    animation: fadeIn 0.3s forwards;
+}
+
 button {
-    padding: 8px 16px;
-    margin: 0 5px;
-    background-color: #020d14;
-    color: white;
+    padding: 8px 14px;
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s ease; /* Smooth transition for background color */
+    transition: background-color 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
 }
 
 button:hover {
-    background-color: #072234;
+    background-color: var(--button-hover);
 }
 
-.close-button {
+button:active {
+    opacity: 0.9;
+}
+
+/* Theme toggle button */
+.theme-toggle {
     background-color: transparent;
-    color: #020d14;
-    border: none;
-    border-radius: 100px;
-    cursor: pointer;
-    font-size: large;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 6px 10px;
+    min-width: 50px;
+    font-size: 12px;
 }
 
-.close-button:hover {
-    background-color: transparent;
-}
-
-.toggle-button {
-    padding: 5px 10px;
-    margin-left: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.theme-toggle:hover {
+    background-color: var(--bg-hover);
+    border-color: var(--text-secondary);
 }
 
 .tweet-fallback {
@@ -156,26 +307,27 @@ button:hover {
 }
 
 .tweet-fallback div {
-    padding: 15px;
-    border: 1px solid #ccc;
+    padding: 14px;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background-color: #f9f9f9;
-    transition: all 0.3s ease;
+    background-color: var(--bg-fallback);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    min-height: 60px;
 }
 
 .tweet-fallback div:hover {
-    border-color: #1da1f2;
-    box-shadow: 0 2px 8px rgba(29, 161, 242, 0.1);
+    border-color: var(--border-hover);
+    background-color: var(--bg-hover);
 }
 
 .tweet-fallback p {
     margin: 0 0 10px 0;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 14px;
 }
 
 .tweet-fallback a {
-    color: #1da1f2;
+    color: var(--accent);
     text-decoration: none;
     word-break: break-all;
     font-size: 14px;
@@ -184,5 +336,58 @@ button:hover {
 
 .tweet-fallback a:hover {
     text-decoration: underline;
-    color: #0d8bd9;
+    color: var(--accent-hover);
+}
+
+/* Empty state */
+#emptyList {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+#emptyList a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+#emptyList a:hover {
+    text-decoration: underline;
+    color: var(--accent-hover);
+}
+
+/* Error container */
+#errorContainer {
+    padding: 10px;
+    margin: 10px 0;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    color: #ef4444;
+    font-size: 13px;
+}
+
+/* Simple URL list container */
+#simpleUrlList {
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 450px;
+    min-height: 100px;
+}
+
+/* Responsive embedded tweets */
+.twitter-tweet {
+    margin: 10px auto !important;
+}
+
+/* Custom styles for embedded tweets in dark mode */
+@media (prefers-color-scheme: dark) {
+    .twitter-tweet {
+        /* Twitter embeds will inherit some dark styling */
+    }
+}
+
+body.dark-theme .twitter-tweet {
+    /* Force dark theme for Twitter embeds when manually set */
 }

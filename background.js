@@ -1,5 +1,4 @@
 let currentUrl = ""; // Ensure this is initialized before use
-let sidebarVisible = {}; // Tracks visibility state per tab
 
 chrome.webNavigation.onCompleted.addListener((details) => {
   // Check if currentUrl is defined and not the same as the new URL
@@ -10,26 +9,8 @@ chrome.webNavigation.onCompleted.addListener((details) => {
   }
 });
 
-chrome.tabs.onActivated.addListener(function (activeInfo) {
-  if (typeof sidebarVisible[activeInfo.tabId] === "undefined") {
-    sidebarVisible[activeInfo.tabId] = false; // Initialize as not visible
-  }
-});
-
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-  if (typeof sidebarVisible[tabId] === "undefined") {
-    sidebarVisible[tabId] = false; // Initialize as not visible
-  }
-});
-
-chrome.browserAction.onClicked.addListener(function (tab) {
-  // Toggle the sidebar visibility state
-  sidebarVisible[tab.id] = !sidebarVisible[tab.id];
-  chrome.tabs.sendMessage(tab.id, {
-    action: "toggleSidebar",
-    visible: sidebarVisible[tab.id],
-  });
-});
+// Browser action now handled by popup - no need for onClicked listener
+// The popup will open automatically when the icon is clicked
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   // Check if currentUrl is defined and not the same as the new URL
@@ -40,16 +21,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
   }
 });
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === "toggleSidebar") {
-    let tabId = sender.tab.id;
-    sidebarVisible[tabId] = request.visible;
-    chrome.tabs.sendMessage(tabId, {
-      action: "toggleSidebar",
-      visible: sidebarVisible[tabId],
-    });
-  }
-});
+// Removed toggleSidebar handler - no longer needed with popup approach
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === "fetchTweet") {
@@ -75,9 +47,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     // Try different endpoints in order
     const endpoints = [
-      'https://publish.twitter.com/oembed',
-      'https://api.twitter.com/1.1/statuses/oembed.json',
-      'https://cdn.syndication.twimg.com/widgets/tweet'
+      'https://publish.twitter.com/oembed'
+      // Twitter's API v1.1 requires authentication, removing it
     ];
 
     let currentEndpointIndex = 0;
