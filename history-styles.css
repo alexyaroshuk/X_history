@@ -55,6 +55,12 @@ body {
 .header h1 {
     font-size: 1.5rem;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+}
+
+.header h1 svg {
+    margin-right: 0.5rem;
 }
 
 .header-controls {
@@ -273,21 +279,26 @@ body {
     display: none;
 }
 
-/* Grid View */
+/* Grid View - Masonry Layout */
 .grid-view .posts-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 1.5rem;
+    display: block;
+    position: relative;
+    margin: 0 auto;
 }
 
 .grid-view .post-item {
-    position: relative;
-    min-height: 200px;
+    position: absolute;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+    container-type: inline-size;
 }
 
 .grid-view .post-item:hover .fx-tweet {
-    box-shadow: 0 4px 12px var(--shadow);
-    transform: translateY(-2px);
+    background-color: var(--bg-hover);
+}
+
+.grid-view .post-item.masonry-positioned {
+    opacity: 1;
 }
 
 /* List View */
@@ -301,7 +312,6 @@ body {
     background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
     padding: 1rem 1rem 1rem 3rem;
-    transition: all 0.2s;
     cursor: pointer;
     position: relative;
 }
@@ -391,18 +401,20 @@ body.dark-theme .search-highlight {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     animation: fadeIn 0.3s ease-in;
     cursor: pointer;
-    transition: all 0.2s;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-/* Grid view tweet should fill the container */
+/* Grid view tweet should have auto height for masonry */
 .grid-view .fx-tweet {
-    height: 100%;
-    min-height: 200px;
+    height: auto;
+    min-height: 120px;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .fx-tweet:hover {
-    background: var(--bg-secondary);
-    border-color: var(--accent);
+    background-color: var(--bg-hover);
 }
 
 /* List View Tweet Modifications */
@@ -415,7 +427,6 @@ body.dark-theme .search-highlight {
 
 .list-view .fx-tweet:hover {
     background: transparent;
-    border-color: transparent;
 }
 
 .list-view .fx-tweet-wrapper {
@@ -471,6 +482,7 @@ body.dark-theme .search-highlight {
     width: 48px;
     height: 48px;
     border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .fx-tweet-author {
@@ -547,8 +559,11 @@ body.dark-theme .fx-tweet a.tweet-hashtag {
 
 .fx-tweet-media {
     width: 100%;
+    max-width: 100%;
+    height: auto;
     border-radius: 12px;
     margin-top: 12px;
+    object-fit: cover;
 }
 
 .fx-tweet-media-grid {
@@ -558,12 +573,15 @@ body.dark-theme .fx-tweet a.tweet-hashtag {
     border-radius: 12px;
     overflow: hidden;
     margin-top: 12px;
+    width: 100%;
+    max-width: 100%;
 }
 
 .fx-tweet-media-grid img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    max-width: 100%;
 }
 
 .fx-tweet-footer {
@@ -765,9 +783,9 @@ body.dark-theme .fx-tweet a.tweet-hashtag {
 
 /* Grid view loading skeleton */
 .grid-view ~ .load-more-container .loading-skeleton {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 1.5rem;
+    display: block;
+    position: relative;
+    min-height: 200px;
 }
 
 .grid-view ~ .load-more-container .skeleton-post {
@@ -867,8 +885,36 @@ body.dark-theme .fx-tweet a.tweet-hashtag {
     animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* Container queries for responsive tweet sizing */
+@container (max-width: 350px) {
+    .fx-tweet {
+        padding: 10px 12px;
+    }
+
+    .fx-tweet-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .fx-tweet-name {
+        font-size: 14px;
+    }
+
+    .fx-tweet-handle {
+        font-size: 13px;
+    }
+
+    .fx-tweet-content p {
+        font-size: 14px;
+    }
+
+    .fx-tweet-footer {
+        font-size: 13px;
+    }
+}
+
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 599px) {
     .header {
         padding: 1rem;
     }
@@ -885,10 +931,17 @@ body.dark-theme .fx-tweet a.tweet-hashtag {
         padding: 0 1rem 1rem 1rem;
     }
 
-    .grid-view .posts-container,
-    .grid-view ~ .load-more-container .loading-skeleton {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+    /* On mobile, switch to single column */
+    .grid-view .posts-container {
+        width: 100%;
+    }
+
+    .grid-view .post-item {
+        position: relative !important;
+        width: 100% !important;
+        margin-bottom: 1rem;
+        left: 0 !important;
+        top: auto !important;
     }
 
     .action-buttons {

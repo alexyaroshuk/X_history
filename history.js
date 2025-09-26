@@ -89,6 +89,90 @@ function extractTextFromHTML(html) {
     return '';
 }
 
+// Masonry layout variables
+let masonryColumns = 4;
+let columnGap = 20;
+let itemWidth = 300;
+
+// Calculate masonry layout
+function calculateMasonryLayout() {
+    const container = document.getElementById('postsContainer');
+    const containerWidth = container.offsetWidth;
+
+    // Responsive column breakpoints
+    if (containerWidth >= 1600) {
+        masonryColumns = 5;
+    } else if (containerWidth >= 1200) {
+        masonryColumns = 4;
+    } else if (containerWidth >= 900) {
+        masonryColumns = 3;
+    } else if (containerWidth >= 600) {
+        masonryColumns = 2;
+    } else {
+        // Mobile - single column
+        masonryColumns = 1;
+        itemWidth = containerWidth;
+        return { masonryColumns, itemWidth };
+    }
+
+    // Calculate item width to fit perfectly with gaps
+    const totalGapWidth = (masonryColumns - 1) * columnGap;
+    itemWidth = Math.floor((containerWidth - totalGapWidth) / masonryColumns);
+
+    return { masonryColumns, itemWidth };
+}
+
+// Apply masonry positioning
+function applyMasonryLayout() {
+    if (currentView !== 'grid') return;
+
+    const container = document.getElementById('postsContainer');
+    const posts = container.querySelectorAll('.post-item');
+
+    if (posts.length === 0) return;
+
+    const { masonryColumns, itemWidth } = calculateMasonryLayout();
+
+    // Track the height of each column
+    const columnHeights = new Array(masonryColumns).fill(0);
+
+    posts.forEach((post, index) => {
+        // Wait for content to be loaded before positioning
+        if (!post.classList.contains('tweet-loaded')) {
+            // Try again after tweet loads
+            const observer = new MutationObserver((mutations, obs) => {
+                if (post.classList.contains('tweet-loaded')) {
+                    obs.disconnect();
+                    applyMasonryLayout();
+                }
+            });
+            observer.observe(post, { attributes: true, attributeFilter: ['class'] });
+            return;
+        }
+
+        // Find shortest column
+        const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
+
+        // Calculate position
+        const x = shortestColumn * (itemWidth + columnGap);
+        const y = columnHeights[shortestColumn];
+
+        // Apply positioning
+        post.style.width = `${itemWidth}px`;
+        post.style.left = `${x}px`;
+        post.style.top = `${y}px`;
+        post.classList.add('masonry-positioned');
+
+        // Update column height
+        const postHeight = post.offsetHeight;
+        columnHeights[shortestColumn] += postHeight + columnGap;
+    });
+
+    // Set container height to accommodate all posts
+    const maxHeight = Math.max(...columnHeights);
+    container.style.height = `${maxHeight}px`;
+}
+
 // Render posts
 function renderPosts(reset = false) {
     if (reset) {
@@ -118,7 +202,12 @@ function renderPosts(reset = false) {
         document.getElementById('postsContainer').style.display = 'none';
     } else {
         document.getElementById('emptyMessage').style.display = 'none';
-        document.getElementById('postsContainer').style.display = currentView === 'grid' ? 'grid' : 'flex';
+        document.getElementById('postsContainer').style.display = 'block';
+
+        // Apply masonry layout for grid view
+        if (currentView === 'grid') {
+            setTimeout(() => applyMasonryLayout(), 100);
+        }
 
         // Setup infinite scroll after rendering posts
         setupInfiniteScroll();
@@ -143,6 +232,11 @@ function checkAllTweetsLoaded() {
             const renderTime = (renderEndTime - renderStartTime).toFixed(2);
             console.log(`✅ All ${allPosts.length} tweets loaded in ${renderTime}ms using ${useFxEmbed ? 'FxEmbed' : 'Twitter official'}`);
             renderStartTime = null;
+
+            // Apply masonry layout after all tweets are loaded
+            if (currentView === 'grid') {
+                applyMasonryLayout();
+            }
         }
     } else if (allPosts.length > 0) {
         // Check again
@@ -761,12 +855,18 @@ function updateLoadMoreIndicator() {
 function updateSkeletonPosts() {
     const skeletonContainer = document.getElementById('loadingSkeleton');
     const isGridView = currentView === 'grid';
-    const numSkeletons = isGridView ? 3 : 2; // Show 3 skeletons for grid, 2 for list
+
+    // Calculate number of skeleton items based on columns
+    let numSkeletons = 2;
+    if (isGridView) {
+        const { masonryColumns } = calculateMasonryLayout();
+        numSkeletons = masonryColumns;
+    }
 
     let skeletonHTML = '';
     for (let i = 0; i < numSkeletons; i++) {
         skeletonHTML += `
-            <div class="skeleton-post">
+            <div class="skeleton-post" style="${isGridView ? 'position: absolute; width: ' + itemWidth + 'px;' : ''}">
                 <div class="skeleton-header">
                     <div class="skeleton-avatar"></div>
                     <div class="skeleton-author">
@@ -789,6 +889,16 @@ function updateSkeletonPosts() {
     }
 
     skeletonContainer.innerHTML = skeletonHTML;
+
+    // Apply masonry layout to skeleton items if in grid view
+    if (isGridView) {
+        const skeletonPosts = skeletonContainer.querySelectorAll('.skeleton-post');
+        skeletonPosts.forEach((post, index) => {
+            const x = index * (itemWidth + columnGap);
+            post.style.left = `${x}px`;
+            post.style.top = '0px';
+        });
+    }
 }
 
 // Variables for infinite scroll
@@ -832,6 +942,11 @@ async function loadMorePosts() {
 
     renderPosts();
     isLoading = false;
+
+    // Apply masonry layout for newly loaded posts
+    if (currentView === 'grid') {
+        setTimeout(() => applyMasonryLayout(), 100);
+    }
 }
 
 // Switch view
@@ -857,6 +972,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     initTheme();
     await loadPosts();
     renderPosts();
+
+    // Add resize handler for masonry layout
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (currentView === 'grid') {
+                applyMasonryLayout();
+            }
+        }, 250);
+    });
 
     // Event listeners
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
