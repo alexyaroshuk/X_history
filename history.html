@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>X History Manager</title>
     <link rel="stylesheet" href="history-styles.css">
+    <link rel="stylesheet" href="fx-tweet-shared.css">
+    <link rel="stylesheet" href="fx-tweet-history.css">
 </head>
 <body>
     <div class="header">
@@ -36,13 +38,6 @@
                         <rect x="1" y="12" width="14" height="2"/>
                     </svg>
                 </button>
-            </div>
-            <div class="embed-toggle">
-                <label class="toggle-label">
-                    <input type="checkbox" id="embedToggle" checked>
-                    <span class="toggle-slider"></span>
-                    <span class="toggle-text">FxEmbed</span>
-                </label>
             </div>
             <button id="themeToggle" class="theme-toggle">🌙</button>
         </div>
@@ -87,6 +82,7 @@
     </div>
 
     <script src="db.js"></script>
+    <script src="shared-tweet-list.js"></script>
     <script src="history.js"></script>
 </body>
 </html>

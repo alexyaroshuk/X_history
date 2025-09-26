@@ -1,0 +1,125 @@
+/* History page-specific FxEmbed styles - Full width media for list view */
+
+/* List View Tweet Modifications */
+.list-view .fx-tweet {
+    border: none;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+}
+
+.list-view .fx-tweet:hover {
+    background: transparent;
+}
+
+.list-view .fx-tweet-wrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+.list-view .fx-tweet-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-view .fx-tweet-media-container {
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.list-view .fx-tweet-media,
+.list-view .fx-tweet-media-grid {
+    margin-top: 0;
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.list-view .fx-tweet-media-grid {
+    display: flex;
+    height: 100px;
+    gap: 2px;
+}
+
+.list-view .fx-tweet-media-grid img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-view .fx-tweet-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: none;
+}
+
+/* Grid view specific styles */
+.grid-view .fx-tweet {
+    height: auto;
+    min-height: 120px;
+    max-width: 100%;
+    width: 100%;
+}
+
+.grid-view .post-item.selected .fx-tweet {
+    border-color: var(--accent);
+    border-width: 2px;
+}
+
+/* Standard media for grid view */
+.grid-view .fx-tweet-media {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-top: 12px;
+}
+
+.grid-view .fx-tweet-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 12px;
+    max-height: 350px;
+    height: auto;
+}
+
+.grid-view .fx-tweet-media-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    max-height: 175px;
+}
+
+/* Container queries for responsive tweet sizing */
+@container (max-width: 350px) {
+    .fx-tweet {
+        padding: 10px 12px;
+    }
+
+    .fx-tweet-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .fx-tweet-name {
+        font-size: 14px;
+    }
+
+    .fx-tweet-handle {
+        font-size: 13px;
+    }
+
+    .fx-tweet-content p {
+        font-size: 14px;
+    }
+
+    .fx-tweet-footer {
+        font-size: 13px;
+    }
+}

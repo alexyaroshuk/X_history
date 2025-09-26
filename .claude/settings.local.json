@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(powershell:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(move sidebar.js sidebar-old.js)",
+      "Bash(move sidebar-new.js sidebar.js)"
     ],
     "deny": [],
     "ask": []

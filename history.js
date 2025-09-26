@@ -7,7 +7,7 @@ let currentView = 'grid';
 let currentSort = 'newest';
 let searchQuery = '';
 let tweetCache = {};
-let useFxEmbed = true; // Toggle between FxEmbed and official Twitter embeds
+// Always use FxEmbed only
 
 // Initialize theme
 function initTheme() {
@@ -230,7 +230,7 @@ function checkAllTweetsLoaded() {
         if (renderStartTime) {
             const renderEndTime = performance.now();
             const renderTime = (renderEndTime - renderStartTime).toFixed(2);
-            console.log(`✅ All ${allPosts.length} tweets loaded in ${renderTime}ms using ${useFxEmbed ? 'FxEmbed' : 'Twitter official'}`);
+            console.log(`✅ All ${allPosts.length} tweets loaded in ${renderTime}ms using FxEmbed`);
             renderStartTime = null;
 
             // Apply masonry layout after all tweets are loaded
@@ -296,13 +296,9 @@ function createPostElement(post) {
     return div;
 }
 
-// Embed tweet using selected method
+// Embed tweet using FxEmbed only
 async function embedTweetInElement(url, container) {
-    if (useFxEmbed) {
-        embedTweetFxEmbed(url, container);
-    } else {
-        embedTweetOfficial(url, container);
-    }
+    embedTweetFxEmbed(url, container);
 }
 
 // Embed tweet using FxEmbed API
@@ -348,41 +344,6 @@ async function embedTweetFxEmbed(url, container) {
         });
 }
 
-// Embed tweet using official Twitter oEmbed
-async function embedTweetOfficial(url, container) {
-    const contentDiv = container.querySelector('.post-content');
-
-    // Check if tweet is cached in IndexedDB
-    const cachedTweet = await tweetDB.getTweet(url);
-    if (cachedTweet && cachedTweet.html) {
-        renderOfficialTweet(contentDiv, cachedTweet.html, container);
-        return;
-    }
-
-    // Fetch from Twitter oEmbed API
-    const isDarkMode = document.body.classList.contains("dark-theme");
-    const theme = isDarkMode ? "dark" : "light";
-
-    fetch(`https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}&omit_script=1&hide_thread=true&theme=${theme}`)
-        .then(response => response.json())
-        .then(async (data) => {
-            if (data.html) {
-                // Save to IndexedDB cache
-                await tweetDB.saveTweet({
-                    url: url,
-                    html: data.html,
-                    authorName: data.author_name,
-                    authorUrl: data.author_url
-                });
-
-                renderOfficialTweet(contentDiv, data.html, container);
-            }
-        })
-        .catch(error => {
-            console.error("Error fetching from Twitter oEmbed:", error);
-            showFallback(contentDiv, url, container);
-        });
-}
 
 // Extract tweet ID from URL
 function extractTweetId(url) {
@@ -579,41 +540,6 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('en-US', options);
 }
 
-// Render official Twitter embed
-function renderOfficialTweet(contentDiv, html, container) {
-    // Remove skeleton first
-    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
-    if (skeleton) skeleton.remove();
-
-    // Add the tweet HTML
-    contentDiv.innerHTML = html;
-
-    // Load Twitter widgets if available
-    if (window.twttr && window.twttr.widgets) {
-        twttr.widgets.load(contentDiv).then(() => {
-            container.classList.add('tweet-loaded');
-        }).catch(() => {
-            container.classList.add('tweet-loaded');
-        });
-    } else {
-        // Load Twitter widgets script if not available
-        if (!document.getElementById('twitter-wjs')) {
-            const script = document.createElement('script');
-            script.id = 'twitter-wjs';
-            script.src = 'https://platform.twitter.com/widgets.js';
-            script.async = true;
-            script.onload = () => {
-                if (window.twttr && window.twttr.widgets) {
-                    twttr.widgets.load(contentDiv).then(() => {
-                        container.classList.add('tweet-loaded');
-                    });
-                }
-            };
-            document.body.appendChild(script);
-        }
-        container.classList.add('tweet-loaded');
-    }
-}
 
 function showFallback(contentDiv, url, container) {
     const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
@@ -989,26 +915,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('gridViewBtn').addEventListener('click', () => switchView('grid'));
     document.getElementById('listViewBtn').addEventListener('click', () => switchView('list'));
 
-    // Embed type toggle
-    const embedToggle = document.getElementById('embedToggle');
-    const toggleText = document.querySelector('.toggle-text');
-    embedToggle.addEventListener('change', (e) => {
-        const startTime = performance.now();
-        useFxEmbed = e.target.checked;
-        toggleText.textContent = useFxEmbed ? 'FxEmbed' : 'Twitter';
-
-        // Clear current posts and re-render with new embed type
-        console.log(`Switching to ${useFxEmbed ? 'FxEmbed' : 'Twitter official'} embeds...`);
-        document.getElementById('postsContainer').innerHTML = '';
-        currentPage = 0;
-        renderPosts();
-
-        // Log performance
-        setTimeout(() => {
-            const endTime = performance.now();
-            console.log(`Render time: ${(endTime - startTime).toFixed(2)}ms`);
-        }, 3000);
-    });
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;
