@@ -536,8 +536,15 @@ function formatNumber(num) {
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
-    const options = { month: 'short', day: 'numeric', year: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
+    const options = {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    };
+    return date.toLocaleString('en-US', options);
 }
 
 
