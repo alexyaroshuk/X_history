@@ -137,21 +137,30 @@ async function createFxPostElement(url, searchQuery = '') {
     // Fetch from FxEmbed API
     try {
         const response = await fetch(`https://api.fxtwitter.com/status/${postId}`);
+
+        if (!response.ok) {
+            throw new Error(`FxTwitter API returned ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
 
-        if (data && data.post) {
+        // FxTwitter API returns data.tweet
+        const postData = data?.tweet;
+
+        if (postData) {
             // Save to IndexedDB cache
             await postDB.savePost({
                 url: url,
-                fxData: data.post,
-                text: data.post.text || '',
-                authorName: data.post.author?.name,
-                authorUrl: `https://x.com/${data.post.author?.screen_name}`
+                fxData: postData,
+                text: postData.text || '',
+                authorName: postData.author?.name,
+                authorUrl: `https://x.com/${postData.author?.screen_name}`
             });
 
-            renderFxPost(div, data.post, url, searchQuery);
+            renderFxPost(div, postData, url, searchQuery);
         } else {
-            throw new Error('Invalid response from FxEmbed');
+            console.log('FxTwitter API response structure:', data);
+            throw new Error('Invalid response structure from FxTwitter API');
         }
     } catch (error) {
         console.error("Error fetching from FxEmbed:", error);

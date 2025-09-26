@@ -1,6 +1,5 @@
-Failed with endpoint https://publish.twitter.com/oembed: Error: HTTP 404:
+Error fetching from FxEmbed: Error: Invalid response from FxEmbed
 Context
-sidebar.html
+popup.html
 Stack Trace
-sidebar.js:872 (console.error)
-sidebar.js:519 (anonymous function)
+sidebar.js:453 (console.error)
