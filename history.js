@@ -411,14 +411,19 @@ function renderFxTweet(contentDiv, tweetData, container, url) {
 // Helper functions
 function linkifyText(text) {
     return text
-        .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank">$&</a>')
-        .replace(/@(\w+)/g, '<a href="https://twitter.com/$1" target="_blank">@$1</a>')
-        .replace(/#(\w+)/g, '<a href="https://twitter.com/hashtag/$1" target="_blank">#$1</a>');
+        .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" rel="noopener" class="tweet-link">$&</a>')
+        .replace(/@(\w+)/g, '<a href="https://twitter.com/$1" target="_blank" rel="noopener" class="tweet-mention">@$1</a>')
+        .replace(/#(\w+)/g, '<a href="https://twitter.com/hashtag/$1" target="_blank" rel="noopener" class="tweet-hashtag">#$1</a>');
 }
 
 // Helper function to highlight search matches
 function highlightSearchText(text, searchQuery) {
-    if (!searchQuery || !text) return text;
+    if (!text) return text;
+
+    // If no search query, just linkify the text
+    if (!searchQuery) {
+        return linkifyText(text);
+    }
 
     // First apply linkify
     let result = linkifyText(text);

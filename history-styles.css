@@ -281,17 +281,13 @@ body {
 }
 
 .grid-view .post-item {
-    background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 0.5rem;
-    transition: all 0.2s;
     position: relative;
     min-height: 200px;
 }
 
-.grid-view .post-item:hover {
+.grid-view .post-item:hover .fx-tweet {
     box-shadow: 0 4px 12px var(--shadow);
+    transform: translateY(-2px);
 }
 
 /* List View */
@@ -317,8 +313,8 @@ body {
 /* Post Item */
 .post-checkbox {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
+    top: 1.5rem;
+    left: 1.5rem;
     width: 1.5rem;
     height: 1.5rem;
     cursor: pointer;
@@ -336,7 +332,12 @@ body {
     opacity: 1 !important;
 }
 
-.post-item.selected {
+.grid-view .post-item.selected .fx-tweet {
+    border-color: var(--accent);
+    border-width: 2px;
+}
+
+.list-view .post-item.selected {
     border-color: var(--accent);
     border-width: 2px;
 }
@@ -366,22 +367,19 @@ body {
 
 .post-content {
     flex: 1;
-    min-height: 100px;
-    position: relative;
 }
 
 /* Search Highlight */
 .search-highlight {
     background-color: #ffd33d;
-    color: var(--text-primary);
+    color: inherit;  /* Don't override text color */
     padding: 0 2px;
     border-radius: 2px;
-    font-weight: 500;
 }
 
 body.dark-theme .search-highlight {
     background-color: #664d00;
-    color: #ffd33d;
+    color: inherit;  /* Keep original text color */
 }
 
 /* FxEmbed Tweet Styles */
@@ -393,7 +391,13 @@ body.dark-theme .search-highlight {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     animation: fadeIn 0.3s ease-in;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: all 0.2s;
+}
+
+/* Grid view tweet should fill the container */
+.grid-view .fx-tweet {
+    height: 100%;
+    min-height: 200px;
 }
 
 .fx-tweet:hover {
@@ -497,13 +501,48 @@ body.dark-theme .search-highlight {
     white-space: pre-wrap;
 }
 
-.fx-tweet-content a {
-    color: var(--accent);
+/* Links, mentions, and hashtags - FxEmbed style */
+.fx-tweet-content a,
+.fx-tweet-content .tweet-link,
+.fx-tweet-content .tweet-mention,
+.fx-tweet-content .tweet-hashtag,
+.fx-tweet a.tweet-link,
+.fx-tweet a.tweet-mention,
+.fx-tweet a.tweet-hashtag {
+    color: #1d9bf0;  /* Twitter blue */
     text-decoration: none;
+    font-weight: inherit;
+    cursor: pointer;
 }
 
-.fx-tweet-content a:hover {
+.fx-tweet-content a:hover,
+.fx-tweet-content .tweet-link:hover,
+.fx-tweet-content .tweet-mention:hover,
+.fx-tweet-content .tweet-hashtag:hover,
+.fx-tweet a.tweet-link:hover,
+.fx-tweet a.tweet-mention:hover,
+.fx-tweet a.tweet-hashtag:hover {
     text-decoration: underline;
+}
+
+/* Dark theme links */
+body.dark-theme .fx-tweet-content a,
+body.dark-theme .fx-tweet-content .tweet-link,
+body.dark-theme .fx-tweet-content .tweet-mention,
+body.dark-theme .fx-tweet-content .tweet-hashtag,
+body.dark-theme .fx-tweet a.tweet-link,
+body.dark-theme .fx-tweet a.tweet-mention,
+body.dark-theme .fx-tweet a.tweet-hashtag {
+    color: #1d9bf0;  /* Same blue in dark theme */
+}
+
+/* Ensure links inside highlighted text keep their color */
+.fx-tweet-content .search-highlight a,
+.fx-tweet-content .search-highlight .tweet-link,
+.fx-tweet-content .search-highlight .tweet-mention,
+.fx-tweet-content .search-highlight .tweet-hashtag {
+    color: #1d9bf0;
+    background-color: transparent;  /* Remove highlight background from the link itself */
 }
 
 .fx-tweet-media {
@@ -734,8 +773,8 @@ body.dark-theme .search-highlight {
 .grid-view ~ .load-more-container .skeleton-post {
     background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 1rem;
+    border-radius: 12px;
+    padding: 12px 16px;
     min-height: 200px;
 }
 
