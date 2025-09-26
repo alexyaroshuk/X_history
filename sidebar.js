@@ -608,7 +608,11 @@ function updateUrlList(urls, isFromSearch = false) {
   const toggleViewButton = document.getElementById("toggleViewButton");
   const searchResultsInfo = document.getElementById("searchResultsInfo");
 
-  console.log(`[UpdateUrlList] Received ${urls.length} total URLs${isFromSearch ? ' from search' : ''}`);
+  console.log('========================================');
+  console.log(`[UpdateUrlList] Called with ${urls.length} total URLs${isFromSearch ? ' from search' : ''}`);
+  console.log('[UpdateUrlList] First 5 URLs received:', urls.slice(0, 5));
+  console.log('[UpdateUrlList] Timestamp:', new Date().toISOString());
+  console.log('========================================');
 
   // Store all URLs for pagination
   allUrls = urls;
@@ -790,6 +794,15 @@ function hideLoadingSkeleton() {
 }
 
 chrome.storage.local.get({ urls: [] }, async (data) => {
+  console.log('========================================');
+  console.log('[POPUP OPENED] Loading posts from storage');
+  console.log(`[POPUP] Total posts: ${data.urls.length}`);
+  console.log('[POPUP] First 5 posts:', data.urls.slice(0, 5));
+  console.log('[POPUP] Timestamp:', new Date().toISOString());
+  console.log('========================================');
+
+  // Ensure URLs are in the correct order (most recent first)
+  // This handles the case where the storage might not be fully updated yet
   updateUrlList(data.urls);
 
   // Pre-fetch tweets for caching if not already cached
@@ -804,6 +817,7 @@ chrome.storage.local.get({ urls: [] }, async (data) => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "updateUrlList") {
+    // Simply update the list with the new order
     updateUrlList(message.urls);
   }
 });

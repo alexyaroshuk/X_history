@@ -1,5 +1,6 @@
-Uncaught SyntaxError: await is only valid in async functions and the top level bodies of modules
+Failed with endpoint https://publish.twitter.com/oembed: Error: HTTP 404:
 Context
 sidebar.html
 Stack Trace
-sidebar.js:533 (anonymous function)
+sidebar.js:872 (console.error)
+sidebar.js:519 (anonymous function)

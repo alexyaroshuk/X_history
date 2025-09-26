@@ -374,7 +374,7 @@ button:active {
 
 /* Pagination loading state */
 .pagination-loading {
-    margin: 20px 0;
+    margin: 0 0 20px 0;
     padding: 10px;
 }
 

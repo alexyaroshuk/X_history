@@ -100,19 +100,35 @@ function saveUrl(url) {
     urlObj.pathname.split("/").filter(Boolean)[1] === "status"
   ) {
     chrome.storage.local.get({ urls: [] }, (data) => {
-      console.log("Current URLs in storage:", data.urls); // Log current URLs
-      if (!data.urls.includes(baseUrl)) {
-        data.urls.push(baseUrl);
-        chrome.storage.local.set({ urls: data.urls }, () => {
-          console.log("URL saved:", baseUrl); // Confirm URL saved
-          chrome.runtime.sendMessage({
-            action: "updateUrlList",
-            urls: data.urls,
-          });
-        });
-      } else {
-        console.log("URL already in storage, not saved again:", baseUrl);
+      console.log('========================================');
+      console.log("[BACKGROUND] Current total URLs in storage:", data.urls.length);
+      console.log("[BACKGROUND] First 3 URLs before update:", data.urls.slice(0, 3));
+
+      // Check if URL already exists
+      const existingIndex = data.urls.indexOf(baseUrl);
+      if (existingIndex !== -1) {
+        // URL already exists - don't move it, just log and return
+        console.log("[BACKGROUND] URL already exists at position", existingIndex, "- keeping position:", baseUrl);
+        console.log('========================================');
+        return; // Exit without making any changes
       }
+
+      // Only add new URLs to the beginning
+      console.log("[BACKGROUND] New URL being added to top:", baseUrl);
+      data.urls.unshift(baseUrl);
+
+      chrome.storage.local.set({ urls: data.urls }, () => {
+        console.log("[BACKGROUND] New URL saved at top:", baseUrl);
+        console.log("[BACKGROUND] New total URLs:", data.urls.length);
+        console.log("[BACKGROUND] First 3 URLs after update:", data.urls.slice(0, 3));
+        console.log("[BACKGROUND] Timestamp:", new Date().toISOString());
+        console.log('========================================');
+
+        chrome.runtime.sendMessage({
+          action: "updateUrlList",
+          urls: data.urls,
+        });
+      });
     });
   } else {
     console.log("URL does not meet saving criteria, not saved:", baseUrl);
