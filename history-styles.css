@@ -305,75 +305,16 @@ body {
 .list-view .posts-container {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 12px;
+    padding: 0 20px;
 }
 
 .list-view .post-item {
-    background-color: var(--bg-primary);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem 1rem 1rem 3rem;
-    cursor: pointer;
     position: relative;
-}
-
-.list-view .post-item:hover {
-    background-color: var(--bg-hover);
+    cursor: pointer;
 }
 
 /* Post Item */
-.post-checkbox {
-    position: absolute;
-    top: 1.5rem;
-    left: 1.5rem;
-    width: 1.5rem;
-    height: 1.5rem;
-    cursor: pointer;
-    z-index: 10;
-    opacity: 0;
-    accent-color: var(--accent);
-    transition: opacity 0.2s;
-}
-
-.post-item:hover .post-checkbox {
-    opacity: 0.7;
-}
-
-.post-checkbox:checked {
-    opacity: 1 !important;
-}
-
-.grid-view .post-item.selected .fx-post {
-    border-color: var(--accent);
-    border-width: 2px;
-}
-
-.list-view .post-item.selected {
-    border-color: var(--accent);
-    border-width: 2px;
-}
-
-.post-item.selected .post-checkbox {
-    opacity: 1;
-}
-
-.list-view .post-checkbox {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    opacity: 0;
-}
-
-.list-view .post-item:hover .post-checkbox {
-    opacity: 0.7;
-}
-
-.list-view .post-checkbox:checked {
-    opacity: 1 !important;
-}
-
-.list-view .post-item.selected .post-checkbox {
-    opacity: 1;
-}
 
 .post-content {
     flex: 1;

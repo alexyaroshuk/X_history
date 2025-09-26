@@ -1,18 +1,21 @@
 /* History page-specific FxEmbed styles - Full width media for list view */
 
-/* List View Post Modifications */
+/* List View Post Modifications - use same card style as grid */
 .list-view .fx-post {
-    border: none;
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .list-view .fx-post:hover {
-    background: transparent;
+    background-color: var(--bg-hover);
+    border-color: var(--border-hover, var(--accent));
 }
 
 /* List view header - same as grid view */
@@ -80,11 +83,6 @@
     min-height: 120px;
     max-width: 100%;
     width: 100%;
-}
-
-.grid-view .post-item.selected .fx-post {
-    border-color: var(--accent);
-    border-width: 2px;
 }
 
 /* Standard media for grid view */

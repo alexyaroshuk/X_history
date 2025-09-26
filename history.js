@@ -1,6 +1,5 @@
 let allPosts = [];
 let filteredPosts = [];
-let selectedPosts = new Set();
 let currentPage = 0;
 const POSTS_PER_PAGE = 20; // Reduced for better performance with embeds
 let currentView = 'grid';
@@ -47,8 +46,7 @@ async function loadPosts() {
             allPosts = data.urls.map((url, index) => ({
                 id: index,
                 url: url,
-                timestamp: Date.now() - (index * 1000 * 60 * 60), // Simulate timestamps
-                selected: false
+                timestamp: Date.now() - (index * 1000 * 60 * 60) // Simulate timestamps
             }));
 
             // Try to get additional data from IndexedDB
@@ -251,13 +249,9 @@ function createPostElement(post) {
     div.dataset.postId = post.id;
     div.dataset.postUrl = post.url;
 
-    if (selectedPosts.has(post.id)) {
-        div.classList.add('selected');
-    }
 
-    // Add checkbox and skeleton loader
+    // Add skeleton loader
     div.innerHTML = `
-        <input type="checkbox" class="post-checkbox" ${selectedPosts.has(post.id) ? 'checked' : ''}>
         <div class="post-content">
             <div class="post-embed-placeholder">
                 <div class="post-skeleton">
@@ -278,12 +272,6 @@ function createPostElement(post) {
         </div>
     `;
 
-    // Add event listeners
-    const checkbox = div.querySelector('.post-checkbox');
-    checkbox.addEventListener('change', (e) => {
-        e.stopPropagation();
-        togglePostSelection(post.id);
-    });
 
     // Embed the post
     embedPostInElement(post.url, div);
@@ -495,67 +483,6 @@ function showFallback(contentDiv, url, container) {
 }
 
 
-// Toggle post selection
-function togglePostSelection(postId) {
-    if (selectedPosts.has(postId)) {
-        selectedPosts.delete(postId);
-        document.querySelector(`[data-post-id="${postId}"]`).classList.remove('selected');
-    } else {
-        selectedPosts.add(postId);
-        document.querySelector(`[data-post-id="${postId}"]`).classList.add('selected');
-    }
-    updateStats();
-    updateActionButtons();
-}
-
-// Select all posts
-function selectAll() {
-    filteredPosts.forEach(post => selectedPosts.add(post.id));
-    document.querySelectorAll('.post-item').forEach(item => {
-        item.classList.add('selected');
-        item.querySelector('.post-checkbox').checked = true;
-    });
-    updateStats();
-    updateActionButtons();
-}
-
-// Deselect all posts
-function deselectAll() {
-    selectedPosts.clear();
-    document.querySelectorAll('.post-item').forEach(item => {
-        item.classList.remove('selected');
-        item.querySelector('.post-checkbox').checked = false;
-    });
-    updateStats();
-    updateActionButtons();
-}
-
-// Delete selected posts
-async function deleteSelected() {
-    if (selectedPosts.size === 0) return;
-
-    if (!confirm(`Delete ${selectedPosts.size} selected post(s)? This cannot be undone.`)) {
-        return;
-    }
-
-    const remainingPosts = allPosts.filter(post => !selectedPosts.has(post.id));
-    const remainingUrls = remainingPosts.map(post => post.url);
-
-    chrome.storage.local.set({ urls: remainingUrls }, async () => {
-        // Also delete from IndexedDB
-        for (let postId of selectedPosts) {
-            const post = allPosts.find(p => p.id === postId);
-            if (post) {
-                await postDB.deletePost(post.url);
-            }
-        }
-
-        selectedPosts.clear();
-        await loadPosts();
-        applyFilters();
-        renderPosts(true);
-    });
-}
 
 // Export posts
 function exportPosts() {
@@ -639,7 +566,6 @@ async function clearAll() {
         await postDB.clearAll();
         allPosts = [];
         filteredPosts = [];
-        selectedPosts.clear();
         renderPosts(true);
     });
 }
@@ -685,22 +611,8 @@ function applyFilters() {
 // Update stats
 function updateStats() {
     document.getElementById('totalPosts').textContent = `${filteredPosts.length} post${filteredPosts.length !== 1 ? 's' : ''}`;
-
-    if (selectedPosts.size > 0) {
-        document.getElementById('selectedCount').style.display = 'inline';
-        document.getElementById('selectedCount').textContent = `${selectedPosts.size} selected`;
-    } else {
-        document.getElementById('selectedCount').style.display = 'none';
-    }
 }
 
-// Update action buttons
-function updateActionButtons() {
-    const hasSelection = selectedPosts.size > 0;
-    document.getElementById('deleteSelectedBtn').disabled = !hasSelection;
-    document.getElementById('selectAllBtn').style.display = hasSelection ? 'none' : 'inline-block';
-    document.getElementById('deselectAllBtn').style.display = hasSelection ? 'inline-block' : 'none';
-}
 
 // Update load more indicator
 function updateLoadMoreIndicator() {
@@ -873,9 +785,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderPosts(true);
     });
 
-    document.getElementById('selectAllBtn').addEventListener('click', selectAll);
-    document.getElementById('deselectAllBtn').addEventListener('click', deselectAll);
-    document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelected);
     document.getElementById('exportBtn').addEventListener('click', exportPosts);
     document.getElementById('clearAllBtn').addEventListener('click', clearAll);
 
