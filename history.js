@@ -7,6 +7,7 @@ let currentView = 'grid';
 let currentSort = 'newest';
 let searchQuery = '';
 let tweetCache = {};
+let useFxEmbed = true; // Toggle between FxEmbed and official Twitter embeds
 
 // Initialize theme
 function initTheme() {
@@ -88,6 +89,9 @@ function renderPosts(reset = false) {
         document.getElementById('postsContainer').innerHTML = '';
     }
 
+    // Track render time
+    renderStartTime = performance.now();
+
     const container = document.getElementById('postsContainer');
     const start = currentPage * POSTS_PER_PAGE;
     const end = start + POSTS_PER_PAGE;
@@ -111,6 +115,29 @@ function renderPosts(reset = false) {
     }
 
     document.getElementById('loadingMessage').style.display = 'none';
+
+    // Check if all tweets are loaded after a short delay
+    setTimeout(checkAllTweetsLoaded, 500);
+}
+
+// Check if all visible tweets are loaded
+let renderStartTime = null;
+
+function checkAllTweetsLoaded() {
+    const allPosts = document.querySelectorAll('.post-item');
+    const loadedPosts = document.querySelectorAll('.post-item.tweet-loaded');
+
+    if (allPosts.length > 0 && allPosts.length === loadedPosts.length) {
+        if (renderStartTime) {
+            const renderEndTime = performance.now();
+            const renderTime = (renderEndTime - renderStartTime).toFixed(2);
+            console.log(`✅ All ${allPosts.length} tweets loaded in ${renderTime}ms using ${useFxEmbed ? 'FxEmbed' : 'Twitter official'}`);
+            renderStartTime = null;
+        }
+    } else if (allPosts.length > 0) {
+        // Check again
+        setTimeout(checkAllTweetsLoaded, 100);
+    }
 }
 
 // Create post element with embedded tweet
@@ -124,11 +151,31 @@ function createPostElement(post) {
         div.classList.add('selected');
     }
 
-    // Add checkbox and loading placeholder
+    // Add checkbox and skeleton loader
     div.innerHTML = `
         <input type="checkbox" class="post-checkbox" ${selectedPosts.has(post.id) ? 'checked' : ''}>
         <div class="post-content">
-            <div class="tweet-embed-placeholder">Loading tweet...</div>
+            <div class="tweet-embed-placeholder">
+                <div class="tweet-skeleton">
+                    <div class="skeleton-header">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-author">
+                            <div class="skeleton-name"></div>
+                            <div class="skeleton-handle"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-content">
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
+                    <div class="skeleton-actions">
+                        <div class="skeleton-action"></div>
+                        <div class="skeleton-action"></div>
+                        <div class="skeleton-action"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 
@@ -145,23 +192,69 @@ function createPostElement(post) {
     return div;
 }
 
-// Embed tweet function similar to sidebar.js
+// Embed tweet using selected method
 async function embedTweetInElement(url, container) {
+    if (useFxEmbed) {
+        embedTweetFxEmbed(url, container);
+    } else {
+        embedTweetOfficial(url, container);
+    }
+}
+
+// Embed tweet using FxEmbed API
+async function embedTweetFxEmbed(url, container) {
+    const contentDiv = container.querySelector('.post-content');
+
+    // Convert Twitter/X URL to FxEmbed API URL
+    const tweetId = extractTweetId(url);
+    if (!tweetId) {
+        showFallback(contentDiv, url, container);
+        return;
+    }
+
+    // Check if tweet is cached in IndexedDB
+    const cachedTweet = await tweetDB.getTweet(url);
+    if (cachedTweet && cachedTweet.fxData) {
+        renderFxTweet(contentDiv, cachedTweet.fxData, container, url);
+        return;
+    }
+
+    // Fetch from FxEmbed API
+    fetch(`https://api.fxtwitter.com/status/${tweetId}`)
+        .then(response => response.json())
+        .then(async (data) => {
+            if (data && data.tweet) {
+                // Save to IndexedDB cache
+                await tweetDB.saveTweet({
+                    url: url,
+                    fxData: data.tweet,
+                    authorName: data.tweet.author?.name,
+                    authorUrl: `https://twitter.com/${data.tweet.author?.screen_name}`
+                });
+
+                renderFxTweet(contentDiv, data.tweet, container, url);
+            } else {
+                throw new Error('Invalid response from FxEmbed');
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching from FxEmbed:", error);
+            showFallback(contentDiv, url, container);
+        });
+}
+
+// Embed tweet using official Twitter oEmbed
+async function embedTweetOfficial(url, container) {
     const contentDiv = container.querySelector('.post-content');
 
     // Check if tweet is cached in IndexedDB
     const cachedTweet = await tweetDB.getTweet(url);
     if (cachedTweet && cachedTweet.html) {
-        contentDiv.innerHTML = cachedTweet.html;
-
-        // Load Twitter widgets if available
-        if (window.twttr && window.twttr.widgets) {
-            twttr.widgets.load(contentDiv);
-        }
+        renderOfficialTweet(contentDiv, cachedTweet.html, container);
         return;
     }
 
-    // Fetch tweet from oEmbed API
+    // Fetch from Twitter oEmbed API
     const isDarkMode = document.body.classList.contains("dark-theme");
     const theme = isDarkMode ? "dark" : "light";
 
@@ -177,29 +270,162 @@ async function embedTweetInElement(url, container) {
                     authorUrl: data.author_url
                 });
 
-                contentDiv.innerHTML = data.html;
-
-                // Load Twitter widgets if available
-                if (window.twttr && window.twttr.widgets) {
-                    twttr.widgets.load(contentDiv);
-                }
+                renderOfficialTweet(contentDiv, data.html, container);
             }
         })
         .catch(error => {
-            console.error("Error embedding tweet:", error);
-            // Fallback to simple link
-            const urlParts = url.split('/');
-            const username = urlParts[3] || 'Unknown';
-
-            contentDiv.innerHTML = `
-                <div class="tweet-fallback">
-                    <div class="post-author">@${username}</div>
-                    <div class="post-error">Tweet preview unavailable</div>
-                    <a href="${url}" target="_blank" class="post-link">View on X →</a>
-                </div>
-            `;
+            console.error("Error fetching from Twitter oEmbed:", error);
+            showFallback(contentDiv, url, container);
         });
 }
+
+// Extract tweet ID from URL
+function extractTweetId(url) {
+    const match = url.match(/status\/(\d+)/);
+    return match ? match[1] : null;
+}
+
+// Render FxEmbed tweet data
+function renderFxTweet(contentDiv, tweetData, container, url) {
+    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
+    if (skeleton) skeleton.remove();
+
+    const isDarkMode = document.body.classList.contains("dark-theme");
+
+    // Build the tweet HTML
+    const tweetHTML = `
+        <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
+            <div class="fx-tweet-header">
+                <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
+                <div class="fx-tweet-author">
+                    <div class="fx-tweet-name">${tweetData.author?.name || 'Unknown'}</div>
+                    <div class="fx-tweet-handle">@${tweetData.author?.screen_name || 'unknown'}</div>
+                </div>
+            </div>
+            <div class="fx-tweet-content">
+                ${tweetData.text ? `<p>${linkifyText(tweetData.text)}</p>` : ''}
+                ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
+                ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
+            </div>
+            <div class="fx-tweet-footer">
+                <div class="fx-tweet-stats">
+                    <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
+                    <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
+                    <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                </div>
+                <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+            </div>
+        </div>
+    `;
+
+    contentDiv.innerHTML = tweetHTML;
+    container.classList.add('tweet-loaded');
+
+    // Make the tweet clickable
+    const tweetElement = contentDiv.querySelector('.fx-tweet');
+    if (tweetElement) {
+        tweetElement.addEventListener('click', (e) => {
+            // Don't open link if clicking on an existing link inside the tweet
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                return;
+            }
+            window.open(url, '_blank');
+        });
+    }
+}
+
+// Helper functions
+function linkifyText(text) {
+    return text
+        .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank">$&</a>')
+        .replace(/@(\w+)/g, '<a href="https://twitter.com/$1" target="_blank">@$1</a>')
+        .replace(/#(\w+)/g, '<a href="https://twitter.com/hashtag/$1" target="_blank">#$1</a>');
+}
+
+function renderPhotos(photos) {
+    if (photos.length === 1) {
+        return `<img class="fx-tweet-media" src="${photos[0].url}" alt="Tweet media">`;
+    }
+    return `
+        <div class="fx-tweet-media-grid">
+            ${photos.map(photo => `<img src="${photo.url}" alt="Tweet media">`).join('')}
+        </div>
+    `;
+}
+
+function renderVideo(video) {
+    return `
+        <video class="fx-tweet-media" controls>
+            <source src="${video.url}" type="video/mp4">
+        </video>
+    `;
+}
+
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Render official Twitter embed
+function renderOfficialTweet(contentDiv, html, container) {
+    // Remove skeleton first
+    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
+    if (skeleton) skeleton.remove();
+
+    // Add the tweet HTML
+    contentDiv.innerHTML = html;
+
+    // Load Twitter widgets if available
+    if (window.twttr && window.twttr.widgets) {
+        twttr.widgets.load(contentDiv).then(() => {
+            container.classList.add('tweet-loaded');
+        }).catch(() => {
+            container.classList.add('tweet-loaded');
+        });
+    } else {
+        // Load Twitter widgets script if not available
+        if (!document.getElementById('twitter-wjs')) {
+            const script = document.createElement('script');
+            script.id = 'twitter-wjs';
+            script.src = 'https://platform.twitter.com/widgets.js';
+            script.async = true;
+            script.onload = () => {
+                if (window.twttr && window.twttr.widgets) {
+                    twttr.widgets.load(contentDiv).then(() => {
+                        container.classList.add('tweet-loaded');
+                    });
+                }
+            };
+            document.body.appendChild(script);
+        }
+        container.classList.add('tweet-loaded');
+    }
+}
+
+function showFallback(contentDiv, url, container) {
+    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
+    if (skeleton) skeleton.remove();
+
+    const urlParts = url.split('/');
+    const username = urlParts[3] || 'Unknown';
+
+    contentDiv.innerHTML = `
+        <div class="tweet-fallback">
+            <div class="post-author">@${username}</div>
+            <div class="post-error">Tweet preview unavailable</div>
+            <a href="${url}" target="_blank" class="post-link">View on X →</a>
+        </div>
+    `;
+    container.classList.add('tweet-loaded');
+}
+
 
 // Toggle post selection
 function togglePostSelection(postId) {
@@ -442,6 +668,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     document.getElementById('gridViewBtn').addEventListener('click', () => switchView('grid'));
     document.getElementById('listViewBtn').addEventListener('click', () => switchView('list'));
+
+    // Embed type toggle
+    const embedToggle = document.getElementById('embedToggle');
+    const toggleText = document.querySelector('.toggle-text');
+    embedToggle.addEventListener('change', (e) => {
+        const startTime = performance.now();
+        useFxEmbed = e.target.checked;
+        toggleText.textContent = useFxEmbed ? 'FxEmbed' : 'Twitter';
+
+        // Clear current posts and re-render with new embed type
+        console.log(`Switching to ${useFxEmbed ? 'FxEmbed' : 'Twitter official'} embeds...`);
+        document.getElementById('postsContainer').innerHTML = '';
+        currentPage = 0;
+        renderPosts();
+
+        // Log performance
+        setTimeout(() => {
+            const endTime = performance.now();
+            console.log(`Render time: ${(endTime - startTime).toFixed(2)}ms`);
+        }, 3000);
+    });
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchQuery = e.target.value;

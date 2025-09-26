@@ -113,6 +113,59 @@ body {
     background-color: var(--bg-hover);
 }
 
+/* Embed Toggle Switch */
+.embed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.toggle-slider {
+    width: 44px;
+    height: 24px;
+    background-color: var(--text-secondary);
+    border-radius: 12px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.toggle-slider::after {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: all 0.3s;
+}
+
+.toggle-label input:checked + .toggle-slider {
+    background-color: var(--accent);
+}
+
+.toggle-label input:checked + .toggle-slider::after {
+    transform: translateX(20px);
+}
+
+.toggle-text {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    min-width: 80px;
+}
+
 /* Toolbar */
 .toolbar {
     background-color: var(--bg-primary);
@@ -304,17 +357,226 @@ body {
 .post-content {
     flex: 1;
     min-height: 100px;
+    position: relative;
 }
 
-/* Twitter embed styles */
-.post-content .twitter-tweet {
-    margin: 0 !important;
+/* FxEmbed Tweet Styles */
+.fx-tweet {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    animation: fadeIn 0.3s ease-in;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.fx-tweet:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.fx-tweet-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.fx-tweet-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.fx-tweet-author {
+    flex: 1;
+}
+
+.fx-tweet-name {
+    font-weight: 700;
+    font-size: 16px;  /* Increased from default */
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.fx-tweet-handle {
+    color: var(--text-secondary);
+    font-size: 15px;  /* Increased from 14px */
+}
+
+.fx-tweet-content {
+    margin-bottom: 12px;
+}
+
+.fx-tweet-content p {
+    color: var(--text-primary);
+    font-size: 16px;  /* Increased from default */
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+    white-space: pre-wrap;
+}
+
+.fx-tweet-content a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.fx-tweet-content a:hover {
+    text-decoration: underline;
+}
+
+.fx-tweet-media {
+    width: 100%;
+    border-radius: 12px;
+    margin-top: 12px;
+}
+
+.fx-tweet-media-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.fx-tweet-media-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fx-tweet-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    font-size: 15px;  /* Increased from 14px */
+    color: var(--text-secondary);
+}
+
+.fx-tweet-stats {
+    display: flex;
+    gap: 16px;
+}
+
+/* Removed fx-tweet-link styles - no longer needed */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .tweet-embed-placeholder {
-    padding: 2rem;
-    text-align: center;
-    color: var(--text-secondary);
+    padding: 1rem;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Skeleton Loading UI */
+.tweet-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-author {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.skeleton-name {
+    height: 16px;
+    width: 120px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-handle {
+    height: 14px;
+    width: 80px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-line {
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-line:nth-child(1) { width: 100%; }
+.skeleton-line:nth-child(2) { width: 95%; }
+.skeleton-line:nth-child(3) { width: 85%; }
+
+.skeleton-actions {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.5rem;
+}
+
+.skeleton-action {
+    height: 14px;
+    width: 40px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
 }
 
 .tweet-fallback {
