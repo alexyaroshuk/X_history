@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X History Manager</title>
+    <link rel="stylesheet" href="history-styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>X History Manager</h1>
+        <div class="header-controls">
+            <div class="stats">
+                <span id="totalPosts">0 posts</span>
+                <span class="separator">•</span>
+                <span id="selectedCount" style="display: none;">0 selected</span>
+            </div>
+            <div class="view-controls">
+                <button id="gridViewBtn" class="view-btn active" title="Grid View">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <rect x="1" y="1" width="5" height="5"/>
+                        <rect x="9" y="1" width="5" height="5"/>
+                        <rect x="1" y="9" width="5" height="5"/>
+                        <rect x="9" y="9" width="5" height="5"/>
+                    </svg>
+                </button>
+                <button id="listViewBtn" class="view-btn" title="List View">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <rect x="1" y="2" width="14" height="2"/>
+                        <rect x="1" y="7" width="14" height="2"/>
+                        <rect x="1" y="12" width="14" height="2"/>
+                    </svg>
+                </button>
+            </div>
+            <button id="themeToggle" class="theme-toggle">🌙</button>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search posts..." />
+            <button id="clearSearchBtn" style="display: none;">✕</button>
+        </div>
+        <div class="filter-controls">
+            <select id="sortOrder">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+            </select>
+            <input type="date" id="dateFilter" title="Filter by date" />
+        </div>
+        <div class="action-buttons">
+            <button id="selectAllBtn" class="action-btn">Select All</button>
+            <button id="deselectAllBtn" class="action-btn" style="display: none;">Deselect All</button>
+            <button id="deleteSelectedBtn" class="action-btn danger" disabled>Delete Selected</button>
+            <button id="exportBtn" class="action-btn">Export</button>
+            <button id="importBtn" class="action-btn">Import</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+            <button id="clearAllBtn" class="action-btn danger">Clear All</button>
+        </div>
+    </div>
+
+    <div id="contentArea" class="content-area grid-view">
+        <div id="loadingMessage" class="loading-message">Loading posts...</div>
+        <div id="postsContainer" class="posts-container"></div>
+        <div id="emptyMessage" class="empty-message" style="display: none;">
+            <h2>No posts in history</h2>
+            <p>Visit X/Twitter posts to start building your history</p>
+        </div>
+    </div>
+
+    <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+        <button id="loadMoreBtn" class="load-more-btn">Load More</button>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="history.js"></script>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+</body>
+</html>

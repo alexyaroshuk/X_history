@@ -286,20 +286,6 @@ button:active {
     opacity: 0.9;
 }
 
-/* Theme toggle button */
-.theme-toggle {
-    background-color: transparent;
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    padding: 6px 10px;
-    min-width: 50px;
-    font-size: 12px;
-}
-
-.theme-toggle:hover {
-    background-color: var(--bg-hover);
-    border-color: var(--text-secondary);
-}
 
 .tweet-fallback {
     margin: 10px 0;

@@ -38,6 +38,9 @@
     "sidebar.html",
     "styles.css",
     "theme-init.js",
-    "db.js"
+    "db.js",
+    "history.html",
+    "history.js",
+    "history-styles.css"
   ]
 }

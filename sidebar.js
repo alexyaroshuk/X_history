@@ -95,7 +95,7 @@ function initTheme() {
 function updateThemeIcon(isDark) {
   const themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {
-    themeToggle.textContent = isDark ? "Light" : "Dark";
+    themeToggle.textContent = isDark ? "☀️" : "🌙";
   }
 }
 
@@ -200,6 +200,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const clearButton = document.getElementById("clearButton");
   const themeToggle = document.getElementById("themeToggle");
+  const historyPageBtn = document.getElementById("historyPageBtn");
   const toggleViewButton = document.getElementById("toggleViewButton");
   const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
@@ -219,10 +220,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     themeToggle.addEventListener("click", toggleTheme);
   }
 
+  // History page button event listener
+  if (historyPageBtn) {
+    historyPageBtn.addEventListener("click", function() {
+      chrome.tabs.create({ url: chrome.runtime.getURL('history.html') });
+    });
+  }
+
   // Set initial display based on the persisted state or default
   tweetEmbedContainer.style.display = isEmbeddedViewVisible ? "block" : "none";
   simpleUrlList.style.display = isEmbeddedViewVisible ? "none" : "block";
-  toggleViewButton.textContent = isEmbeddedViewVisible
+  toggleViewButton.textContent = isEmbeddedViewVisible ? "📝" : "🖼️";
+  toggleViewButton.title = isEmbeddedViewVisible
     ? "Show Simple View"
     : "Show Embedded View";
 
@@ -308,7 +317,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.log("[ToggleView] Showing embedded view");
       tweetEmbedContainer.style.display = "block";
       simpleUrlList.style.display = "none";
-      toggleViewButton.textContent = "Show Simple View";
+      toggleViewButton.textContent = "📝";
+      toggleViewButton.title = "Show Simple View";
 
       // Clear embedded container and reload with pagination
       tweetEmbedContainer.innerHTML = '';
@@ -348,7 +358,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.log("[ToggleView] Showing simple view");
       tweetEmbedContainer.style.display = "none";
       simpleUrlList.style.display = "block";
-      toggleViewButton.textContent = "Show Embedded View";
+      toggleViewButton.textContent = "🖼️";
+      toggleViewButton.title = "Show Embedded View";
 
       // Update content class for simple view styling
       const content = document.querySelector('.content');
