@@ -1,141 +1,184 @@
 # X History Chrome Extension
 
-A Chrome extension that tracks and saves X posts you view, with full-text search capabilities and offline caching.
+A Chrome extension that tracks and saves X (Twitter) posts you view, with full-text search, masonry grid layout, and offline caching.
 
-## Features
+## 🚀 Features
 
-- **Automatic Post Tracking**: Automatically saves URLs of posts you view on X.com
-- **IndexedDB Caching**: All posts are cached locally for instant loading and offline access
-- **Full-Text Search**: Search through your saved posts by keywords (username, content, etc.)
+- **Automatic Post Tracking**: Automatically saves posts you view on X.com
+- **Smart Caching**: Posts cached in IndexedDB for instant loading and offline access
+- **Full-Text Search**: Search through saved posts by content, username, or keywords
 - **Dual View Modes**:
-  - Simple URL list view for quick scanning
-  - Embedded post view with full X card rendering
+  - **Masonry Grid View**: Pinterest-style responsive grid layout
+  - **List View**: Compact single-column layout
+- **History Manager**: Dedicated page for managing your entire post history
 - **Dark/Light Theme**: Automatic theme detection with manual toggle
-- **Pagination**: Efficient infinite scroll loading (5 posts at a time)
-- **Persistent Storage**: Your history is saved locally in Chrome storage and IndexedDB
-- **Offline Support**: Cached posts load instantly without network requests
+- **Infinite Scroll**: Smooth pagination (10 posts per page in history, 5 in popup)
+- **Import/Export**: Backup and restore your post history as JSON
+- **TypeScript**: Full type safety and better development experience
+- **Manifest V3**: Future-proof with Chrome's latest extension architecture
 
-## Installation
+## 📦 Tech Stack
 
-### Method 1: Load Unpacked Extension (Development)
+- **TypeScript** - Type-safe development
+- **Manifest V3** - Latest Chrome extension architecture
+- **IndexedDB** - Local database for post caching
+- **FxTwitter API** - Enhanced post data fetching
+- **ES Modules** - Modern JavaScript modules
+- **Masonry Layout** - Dynamic responsive grid
 
-1. **Download/Clone** this repository to your local machine
+## 🛠️ Installation
+
+### For Users
+
+1. **Download** the latest release or clone this repository
 2. **Open Chrome** and navigate to `chrome://extensions/`
-3. **Enable Developer Mode** by toggling the switch in the top right
-4. **Click "Load unpacked"** and select the folder containing this extension
+3. **Enable Developer Mode** using the toggle in the top right
+4. **Click "Load unpacked"** and select the extension folder
 5. **Pin the extension** to your toolbar for easy access
 
-## Usage
+### For Developers
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/x-history.git
+cd x-history
+
+# Install dependencies
+npm install
+
+# Build the TypeScript files
+npm run build
+
+# Watch for changes during development
+npm run watch
+```
+
+## 💡 Usage
 
 ### Basic Operation
 
-1. **Browse X.com**: Navigate to X.com and view posts normally
-2. **Automatic Tracking**: The extension automatically saves post URLs as you browse
-3. **View History**: Click the extension icon in your toolbar to open the popup
-4. **Search Posts**: Use the search bar to find specific posts
+1. **Browse X.com** - Navigate and view posts normally
+2. **Automatic Tracking** - Posts are automatically saved as you browse
+3. **View History** - Click the extension icon to see recent posts
+4. **History Manager** - Click 📋 button for full history page
 
-### Controls
+### Features Guide
 
-- **Search Bar**: Enter keywords to filter posts (searches text content, usernames, etc.)
-- **Clear Search**: Click the X button to reset search and view all posts
-- **Toggle View**: Switch between simple URL list and embedded post views
-- **Theme Toggle**: Switch between light and dark themes
-- **Clear All**: Remove all saved history (requires confirmation)
-
-### Search Functionality
-
-- Search is case-insensitive
-- Searches across post content, usernames, and URLs
+#### 🔍 Search
+- Real-time search as you type
+- Searches post content, usernames, and metadata
 - Multi-word search (all terms must match)
-- Results update instantly as you type
-- Shows count of matching posts
+- Clear button to reset search
 
-### Caching Strategy
+#### 🎨 View Modes
+- **Grid View**: Masonry layout with multiple columns
+- **List View**: Single column with compact cards
+- Toggle between views with the grid/list buttons
 
-1. **First Visit**: Post is fetched from X's oEmbed API
-2. **Cached**: Post data and HTML stored in IndexedDB
-3. **Subsequent Views**: Loads instantly from cache without network requests
-4. **Offline Ready**: Works without internet for previously viewed posts
+#### 📊 History Manager
+- View all saved posts in one place
+- Advanced filtering and sorting
+- Export your data as JSON
+- Import previously exported data
+- Bulk management options
 
-## Files Structure
+#### 🎨 Themes
+- Automatic system theme detection
+- Manual toggle with 🌙/☀️ button
+- Persists across sessions
+
+## 📂 Project Structure
 
 ```
-├── manifest.json          # Extension configuration (Manifest V2)
-├── background.js          # Background script for URL tracking
-├── popup.html           # Popup HTML interface
-├── sidebar.js             # Main popup functionality
-├── db.js                  # IndexedDB operations for caching
-├── styles.css             # Styling for popup interface
-├── theme-init.js          # Theme initialization
-├── content.js             # Content script (if needed)
-├── injectSidebar.js       # Legacy sidebar injection
-└── images/                # Extension icons
-    ├── 16.png
-    ├── 48.png
-    └── 128.png
+X_history/
+├── src/                    # TypeScript source files
+│   ├── background.ts       # Service worker for URL tracking
+│   ├── sidebar.ts          # Popup functionality
+│   ├── history.ts          # History page logic
+│   ├── db.ts              # IndexedDB operations
+│   └── shared-post-list.ts # Shared rendering logic
+├── dist/                   # Compiled JavaScript
+├── images/                 # Extension icons
+├── manifest.json          # Manifest V3 configuration
+├── popup.html             # Popup interface
+├── history.html           # History manager page
+├── *.css                  # Stylesheets
+├── package.json           # Dependencies
+└── tsconfig.json          # TypeScript config
 ```
 
-## Technical Details
+## 🔧 Development
 
-### Architecture
+### Commands
 
-- **Manifest V2**: Chrome extension using Manifest V2
-- **IndexedDB**: Local database for post caching and search
-- **Chrome Storage API**: For URL list persistence
-- **X oEmbed API**: For fetching post content
-- **Background Script**: Monitors navigation and saves post URLs
+```bash
+# Build TypeScript
+npm run build
 
-### Permissions
+# Watch mode for development
+npm run watch
 
-- **activeTab**: Access to current tab
-- **webNavigation**: Track page navigation
-- **storage**: Save browsing history locally
-- **tabs**: Manage tab state
-- **X domains**: Access to X's API endpoints
+# Clean build directory
+npm run clean
 
-### Data Storage
+# Development mode (build + watch)
+npm run dev
+```
 
-- **Chrome Storage**: List of post URLs
-- **IndexedDB**: Full post data including:
-  - HTML content
-  - Post text
-  - Author information
-  - Metadata
-  - Timestamps
+### Key Technologies
 
-## Troubleshooting
+- **Chrome Storage API** - URL list persistence
+- **IndexedDB** - Full post data caching
+- **FxTwitter API** - Enhanced post metadata
+- **Service Workers** - Background processing (Manifest V3)
+- **MutationObserver** - Dynamic content handling
 
-### Extension popup is empty
-- Browse some posts on X.com first
-- Check if you're on the correct domain (x.com)
-- Ensure the extension has proper permissions
+## 🔒 Privacy
 
-### Search not working
-- Make sure posts are cached (view them first)
-- Try refreshing the extension popup
+- **100% Local Storage** - All data stays in your browser
+- **No External Servers** - Only connects to X.com and FxTwitter API
+- **No Analytics/Tracking** - Your privacy is respected
+- **Easy Data Removal** - Clear all data with one click
+- **Export Your Data** - Full control over your information
+
+## 🐛 Troubleshooting
+
+### Posts not showing in grid view?
+- Wait a moment for posts to load
+- Try switching to list view and back
 - Check browser console for errors
 
-### Posts not loading
-- Check your internet connection for first-time loads
-- Verify X's API is accessible
-- Try clearing cache and reloading
+### Search not finding posts?
+- Ensure posts are fully loaded first
+- Search is case-insensitive
+- Try simpler search terms
 
-## Privacy
+### Extension not tracking posts?
+- Make sure you're on x.com (not twitter.com)
+- Check extension permissions
+- Reload the extension
 
-- **All data is stored locally** in your browser
-- **No external servers** involved (except X's API)
-- **No tracking or analytics**
-- **Data never leaves your device**
-- Clear button removes all stored data permanently
+### Import/Export issues?
+- Export creates a JSON file with all post data
+- Import only accepts properly formatted JSON
+- Large imports may take a moment
 
-## Support
+## 🤝 Contributing
 
-If you encounter issues:
-1. Check the troubleshooting section
-2. Open browser console (F12) for error messages
-3. Try reloading the extension
-4. Report issues at the project repository
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## License
+## 📄 License
 
-This project is open source and available under the MIT License.
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+For issues or questions:
+1. Check the troubleshooting section above
+2. Open browser DevTools (F12) for error details
+3. Create an issue on GitHub
+4. Include console logs and steps to reproduce
+
+---
+
+**Note**: This extension requires Chrome/Edge with Manifest V3 support (Chrome 88+)

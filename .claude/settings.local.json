@@ -5,7 +5,9 @@
       "WebSearch",
       "Bash(move sidebar.js sidebar-old.js)",
       "Bash(move sidebar-new.js sidebar.js)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

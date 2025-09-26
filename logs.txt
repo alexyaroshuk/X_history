@@ -1,26 +1,128 @@
-Twitter Widgets JS loaded successfully.
-00:48:58.941 sidebar.js:167 DOM fully loaded and parsed
-00:48:58.942 sidebar.js:483 [UpdateUrlList] Received 7 total URLs
-00:48:58.942 sidebar.js:536 [LoadNextPage] Loading page 1 of 2
-00:48:58.942 sidebar.js:322 [Pagination] Fetching page 1, posts 1-5 of 7
-00:48:58.942 sidebar.js:606 [LoadingSkeleton] Showing loading skeleton
-00:48:58.942 sidebar.js:592 [LoadNextPage] Ready for next page. Current page index: 1, hasMorePages: true, Total pages: 2
-00:48:58.946 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
-00:48:59.116 sidebar.js:397 Twitter oEmbed response: Object
-00:48:59.153 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
-00:48:59.257 sidebar.js:397 Twitter oEmbed response: Object
-00:48:59.345 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
-00:48:59.352 sidebar.js:397 Twitter oEmbed response: Object
-00:48:59.547 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
-00:48:59.605 sidebar.js:397 Twitter oEmbed response: Object
-00:48:59.784 sidebar.js:382 Trying Twitter oEmbed endpoint: https://publish.twitter.com/oembed
-00:48:59.955 sidebar.js:397 Twitter oEmbed response: Object
-00:49:00.286 sidebar.js:613 [LoadingSkeleton] Hiding loading skeleton
-00:49:00.286 sidebar.js:575 [LoadNextPage] Page 2 loaded successfully
-00:49:01.484 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/ILA_NewsX/status/1970505680122716178
-00:49:01.758 [Violation] Forced reflow while executing JavaScript took 110ms
-00:49:01.984 [Violation] Forced reflow while executing JavaScript took 42ms
-00:49:02.172 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/KoffinKinder/status/1970512878198259983
-00:49:02.173 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/BillGatesOHell/status/1970520325075960011
-00:49:02.214 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/JNovy_/status/1970519374445584468
-00:49:02.215 sidebar.js:421 Tweet embedded and UI loaded for URL: https://x.com/AtomicPirates/status/1970522564960350284
+X History extension installed/updated
+01:05:09.178 db.ts:63 IndexedDB initialized successfully
+01:05:09.204 history.ts:488 [History Page] Storage data received: Object
+01:05:09.204 history.ts:490 [History Page] URLs to display: 17 posts
+01:05:09.204 history.ts:278 [displayPosts] Called with 17 URLs
+01:05:09.205 history.ts:311 [displayPosts] About to load first page, hasMorePages: true
+01:05:09.208 history.ts:89 [LoadNextPage] Called - isLoading: false, hasMorePages: true, currentPage: 0, allUrls: 17
+01:05:09.208 history.ts:106 [LoadNextPage] Loading page 1, posts 1-10 of 17
+01:05:09.310 history.ts:78 [InfiniteScroll] Loading next page
+01:05:09.311 history.ts:89 [LoadNextPage] Called - isLoading: false, hasMorePages: true, currentPage: 1, allUrls: 17
+01:05:09.311 history.ts:106 [LoadNextPage] Loading page 2, posts 11-17 of 17
+01:05:09.372 history.ts:150 [Masonry] Found 17 total posts, 17 loaded
+01:05:09.372 history.ts:174 [Masonry] Positioning 17 posts in 1 columns
+01:05:09.372 history.ts:184 [Masonry] Post 0: col 0, pos (0, 0)
+01:05:09.372 history.ts:196 [Masonry] Post 0 height: 0px
+01:05:09.372 history.ts:184 [Masonry] Post 1: col 0, pos (0, 20)
+01:05:09.372 history.ts:196 [Masonry] Post 1 height: 0px
+01:05:09.372 history.ts:184 [Masonry] Post 2: col 0, pos (0, 40)
+01:05:09.372 history.ts:196 [Masonry] Post 2 height: 0px
+01:05:09.372 history.ts:184 [Masonry] Post 3: col 0, pos (0, 60)
+01:05:09.372 history.ts:196 [Masonry] Post 3 height: 0px
+01:05:09.372 history.ts:184 [Masonry] Post 4: col 0, pos (0, 80)
+01:05:09.372 history.ts:196 [Masonry] Post 4 height: 0px
+01:05:09.372 history.ts:184 [Masonry] Post 5: col 0, pos (0, 100)
+01:05:09.373 history.ts:196 [Masonry] Post 5 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 6: col 0, pos (0, 120)
+01:05:09.373 history.ts:196 [Masonry] Post 6 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 7: col 0, pos (0, 140)
+01:05:09.373 history.ts:196 [Masonry] Post 7 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 8: col 0, pos (0, 160)
+01:05:09.373 history.ts:196 [Masonry] Post 8 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 9: col 0, pos (0, 180)
+01:05:09.373 history.ts:196 [Masonry] Post 9 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 10: col 0, pos (0, 200)
+01:05:09.373 history.ts:196 [Masonry] Post 10 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 11: col 0, pos (0, 220)
+01:05:09.373 history.ts:196 [Masonry] Post 11 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 12: col 0, pos (0, 240)
+01:05:09.373 history.ts:196 [Masonry] Post 12 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 13: col 0, pos (0, 260)
+01:05:09.373 history.ts:196 [Masonry] Post 13 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 14: col 0, pos (0, 280)
+01:05:09.373 history.ts:196 [Masonry] Post 14 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 15: col 0, pos (0, 300)
+01:05:09.373 history.ts:196 [Masonry] Post 15 height: 0px
+01:05:09.373 history.ts:184 [Masonry] Post 16: col 0, pos (0, 320)
+01:05:09.373 history.ts:196 [Masonry] Post 16 height: 0px
+01:05:09.373 history.ts:202 [Masonry] Setting container height to 340px
+01:05:09.446 history.ts:150 [Masonry] Found 17 total posts, 17 loaded
+01:05:09.447 history.ts:174 [Masonry] Positioning 17 posts in 1 columns
+01:05:09.447 history.ts:184 [Masonry] Post 0: col 0, pos (0, 0)
+01:05:09.447 history.ts:196 [Masonry] Post 0 height: 0px
+01:05:09.447 history.ts:184 [Masonry] Post 1: col 0, pos (0, 20)
+01:05:09.447 history.ts:196 [Masonry] Post 1 height: 0px
+01:05:09.447 history.ts:184 [Masonry] Post 2: col 0, pos (0, 40)
+01:05:09.447 history.ts:196 [Masonry] Post 2 height: 0px
+01:05:09.447 history.ts:184 [Masonry] Post 3: col 0, pos (0, 60)
+01:05:09.447 history.ts:196 [Masonry] Post 3 height: 0px
+01:05:09.447 history.ts:184 [Masonry] Post 4: col 0, pos (0, 80)
+01:05:09.447 history.ts:196 [Masonry] Post 4 height: 0px
+01:05:09.447 history.ts:184 [Masonry] Post 5: col 0, pos (0, 100)
+01:05:09.448 history.ts:196 [Masonry] Post 5 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 6: col 0, pos (0, 120)
+01:05:09.448 history.ts:196 [Masonry] Post 6 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 7: col 0, pos (0, 140)
+01:05:09.448 history.ts:196 [Masonry] Post 7 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 8: col 0, pos (0, 160)
+01:05:09.448 history.ts:196 [Masonry] Post 8 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 9: col 0, pos (0, 180)
+01:05:09.448 history.ts:196 [Masonry] Post 9 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 10: col 0, pos (0, 200)
+01:05:09.448 history.ts:196 [Masonry] Post 10 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 11: col 0, pos (0, 220)
+01:05:09.448 history.ts:196 [Masonry] Post 11 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 12: col 0, pos (0, 240)
+01:05:09.448 history.ts:196 [Masonry] Post 12 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 13: col 0, pos (0, 260)
+01:05:09.448 history.ts:196 [Masonry] Post 13 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 14: col 0, pos (0, 280)
+01:05:09.448 history.ts:196 [Masonry] Post 14 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 15: col 0, pos (0, 300)
+01:05:09.448 history.ts:196 [Masonry] Post 15 height: 0px
+01:05:09.448 history.ts:184 [Masonry] Post 16: col 0, pos (0, 320)
+01:05:09.449 history.ts:196 [Masonry] Post 16 height: 0px
+01:05:09.449 history.ts:202 [Masonry] Setting container height to 340px
+01:05:11.285 background.ts:9 onCompleted URL: about:blank
+01:05:11.285 background.ts:24 Attempting to save URL: about:blank
+01:05:11.285 background.ts:28 Base URL: nullblank
+01:05:11.286 background.ts:29 Hostname: 
+01:05:11.286 background.ts:30 Path Segments: Array(1)
+01:05:11.286 background.ts:71 URL does not meet saving criteria, not saved: nullblank
+01:05:12.828 history.ts:150 [Masonry] Found 17 total posts, 17 loaded
+01:05:12.828 history.ts:174 [Masonry] Positioning 17 posts in 1 columns
+01:05:12.828 history.ts:184 [Masonry] Post 0: col 0, pos (0, 0)
+01:05:12.828 history.ts:196 [Masonry] Post 0 height: 0px
+01:05:12.828 history.ts:184 [Masonry] Post 1: col 0, pos (0, 20)
+01:05:12.828 history.ts:196 [Masonry] Post 1 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 2: col 0, pos (0, 40)
+01:05:12.829 history.ts:196 [Masonry] Post 2 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 3: col 0, pos (0, 60)
+01:05:12.829 history.ts:196 [Masonry] Post 3 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 4: col 0, pos (0, 80)
+01:05:12.829 history.ts:196 [Masonry] Post 4 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 5: col 0, pos (0, 100)
+01:05:12.829 history.ts:196 [Masonry] Post 5 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 6: col 0, pos (0, 120)
+01:05:12.829 history.ts:196 [Masonry] Post 6 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 7: col 0, pos (0, 140)
+01:05:12.829 history.ts:196 [Masonry] Post 7 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 8: col 0, pos (0, 160)
+01:05:12.829 history.ts:196 [Masonry] Post 8 height: 0px
+01:05:12.829 history.ts:184 [Masonry] Post 9: col 0, pos (0, 180)
+01:05:12.830 history.ts:196 [Masonry] Post 9 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 10: col 0, pos (0, 200)
+01:05:12.830 history.ts:196 [Masonry] Post 10 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 11: col 0, pos (0, 220)
+01:05:12.830 history.ts:196 [Masonry] Post 11 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 12: col 0, pos (0, 240)
+01:05:12.830 history.ts:196 [Masonry] Post 12 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 13: col 0, pos (0, 260)
+01:05:12.830 history.ts:196 [Masonry] Post 13 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 14: col 0, pos (0, 280)
+01:05:12.830 history.ts:196 [Masonry] Post 14 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 15: col 0, pos (0, 300)
+01:05:12.830 history.ts:196 [Masonry] Post 15 height: 0px
+01:05:12.830 history.ts:184 [Masonry] Post 16: col 0, pos (0, 320)
+01:05:12.830 history.ts:196 [Masonry] Post 16 height: 0px
+01:05:12.830 history.ts:202 [Masonry] Setting container height to 340px

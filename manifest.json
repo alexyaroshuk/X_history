@@ -1,24 +1,24 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "X History",
   "description": "This extension tracks the X posts the user views and saves them for later viewing",
-  "version": "1.0",
+  "version": "1.1.0",
   "permissions": [
     "activeTab",
     "webNavigation",
     "storage",
-    "tabs",
-    "https://publish.x.com/*",
-    "https://cdn.syndication.twimg.com/*"
+    "tabs"
   ],
-  "content_security_policy": "script-src 'self' https://platform.x.com https://x.com; object-src 'self'",
+  "host_permissions": [
+    "https://publish.x.com/*",
+    "https://cdn.syndication.twimg.com/*",
+    "https://api.fxtwitter.com/*"
+  ],
   "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": false
+    "service_worker": "dist/background.js",
+    "type": "module"
   },
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "images/16.png",
       "48": "images/48.png",
@@ -33,13 +33,25 @@
     "128": "images/128.png"
   },
   "web_accessible_resources": [
-    "sidebar.js",
-    "popup.html",
-    "styles.css",
-    "theme-init.js",
-    "db.js",
-    "history.html",
-    "history.js",
-    "history-styles.css"
-  ]
+    {
+      "resources": [
+        "dist/sidebar.js",
+        "popup.html",
+        "styles.css",
+        "dist/theme-init.js",
+        "dist/db.js",
+        "history.html",
+        "dist/history.js",
+        "history-styles.css",
+        "fx-post-shared.css",
+        "fx-post-popup.css",
+        "fx-post-history.css",
+        "dist/shared-post-list.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

@@ -293,12 +293,12 @@ body {
     container-type: inline-size;
 }
 
-.grid-view .post-item:hover .fx-post {
-    background-color: var(--bg-hover);
-}
-
 .grid-view .post-item.masonry-positioned {
     opacity: 1;
+}
+
+.grid-view .post-item:hover .fx-post {
+    background-color: var(--bg-hover);
 }
 
 /* List View */

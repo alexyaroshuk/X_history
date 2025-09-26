@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="history-styles.css">
     <link rel="stylesheet" href="fx-post-shared.css">
     <link rel="stylesheet" href="fx-post-history.css">
+    <script src="dist/theme-init.js"></script>
 </head>
 <body>
     <div class="header">
@@ -70,14 +71,20 @@
         </div>
     </div>
 
+    <!-- Scroll sentinel for infinite scroll -->
+    <div id="scrollSentinel" style="height: 1px;"></div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" style="display: none; text-align: center; padding: 20px;">
+        <div>Loading more posts...</div>
+    </div>
+
     <div id="loadMoreContainer" class="load-more-container" style="display: none;">
         <div class="loading-skeleton" id="loadingSkeleton">
             <!-- Skeleton posts will be dynamically generated based on view -->
         </div>
     </div>
 
-    <script src="db.js"></script>
-    <script src="shared-post-list.js"></script>
-    <script src="history.js"></script>
+    <script type="module" src="dist/history.js"></script>
 </body>
 </html>

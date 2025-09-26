@@ -1,0 +1,21 @@
+/* Grid View - Masonry Layout */
+.grid-view .posts-container {
+    display: block;
+    position: relative;
+    margin: 0 auto;
+}
+
+.grid-view .post-item {
+    position: absolute;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+    container-type: inline-size;
+}
+
+.grid-view .post-item:hover .fx-post {
+    background-color: var(--bg-hover);
+}
+
+.grid-view .post-item.masonry-positioned {
+    opacity: 1;
+}

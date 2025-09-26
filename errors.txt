@@ -1,5 +1,5 @@
-Error fetching from FxEmbed: Error: Invalid response from FxEmbed
+Uncaught SyntaxError: Unexpected token 'export'
 Context
 popup.html
 Stack Trace
-sidebar.js:453 (console.error)
+dist/theme-init.js:19 (anonymous function)
