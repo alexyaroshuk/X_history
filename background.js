@@ -24,8 +24,8 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
 // Removed toggleSidebar handler - no longer needed with popup approach
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === "fetchTweet") {
-    // Try multiple Twitter oEmbed endpoints
+  if (request.action === "fetchPost") {
+    // Try multiple X oEmbed endpoints
     const tryOEmbedEndpoint = (endpoint) => {
       const oEmbedUrl = `${endpoint}?url=${encodeURIComponent(request.url)}&omit_script=1`;
       return fetch(oEmbedUrl)
@@ -47,19 +47,19 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     // Try different endpoints in order
     const endpoints = [
-      'https://publish.twitter.com/oembed'
-      // Twitter's API v1.1 requires authentication, removing it
+      'https://publish.x.com/oembed'
+      // X's API v1.1 requires authentication, removing it
     ];
 
     let currentEndpointIndex = 0;
 
     const tryNextEndpoint = () => {
       if (currentEndpointIndex >= endpoints.length) {
-        throw new Error('All Twitter oEmbed endpoints failed');
+        throw new Error('All X oEmbed endpoints failed');
       }
 
       const endpoint = endpoints[currentEndpointIndex];
-      console.log(`Trying Twitter oEmbed endpoint: ${endpoint}`);
+      console.log(`Trying X oEmbed endpoint: ${endpoint}`);
 
       return tryOEmbedEndpoint(endpoint)
         .catch((error) => {
@@ -74,11 +74,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     tryNextEndpoint()
       .then((data) => {
-        console.log('Twitter oEmbed response:', data);
+        console.log('X oEmbed response:', data);
         sendResponse({ success: true, data: data });
       })
       .catch((error) => {
-        console.error("Error fetching tweet:", error);
+        console.error("Error fetching post:", error);
         sendResponse({ success: false, error: error.toString() });
       });
     return true; // Will respond asynchronously.

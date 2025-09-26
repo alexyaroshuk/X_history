@@ -1,74 +1,74 @@
 /* History page-specific FxEmbed styles - Full width media for list view */
 
-/* List View Tweet Modifications */
-.list-view .fx-tweet {
+/* List View Post Modifications */
+.list-view .fx-post {
     border: none;
     padding: 0;
     background: transparent;
     border-radius: 0;
 }
 
-.list-view .fx-tweet:hover {
+.list-view .fx-post:hover {
     background: transparent;
 }
 
-.list-view .fx-tweet-wrapper {
+.list-view .fx-post-wrapper {
     display: flex;
     gap: 1rem;
 }
 
-.list-view .fx-tweet-main {
+.list-view .fx-post-main {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.list-view .fx-tweet-media-container {
+.list-view .fx-post-media-container {
     width: 150px;
     flex-shrink: 0;
 }
 
-.list-view .fx-tweet-media,
-.list-view .fx-tweet-media-grid {
+.list-view .fx-post-media,
+.list-view .fx-post-media-grid {
     margin-top: 0;
     width: 100%;
     height: 100px;
     object-fit: cover;
 }
 
-.list-view .fx-tweet-media-grid {
+.list-view .fx-post-media-grid {
     display: flex;
     height: 100px;
     gap: 2px;
 }
 
-.list-view .fx-tweet-media-grid img {
+.list-view .fx-post-media-grid img {
     width: 50%;
     height: 100%;
     object-fit: cover;
 }
 
-.list-view .fx-tweet-footer {
+.list-view .fx-post-footer {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
     border-top: none;
 }
 
 /* Grid view specific styles */
-.grid-view .fx-tweet {
+.grid-view .fx-post {
     height: auto;
     min-height: 120px;
     max-width: 100%;
     width: 100%;
 }
 
-.grid-view .post-item.selected .fx-tweet {
+.grid-view .post-item.selected .fx-post {
     border-color: var(--accent);
     border-width: 2px;
 }
 
 /* Standard media for grid view */
-.grid-view .fx-tweet-media {
+.grid-view .fx-post-media {
     width: 100%;
     max-width: 100%;
     height: auto;
@@ -78,7 +78,7 @@
     margin-top: 12px;
 }
 
-.grid-view .fx-tweet-media-grid {
+.grid-view .fx-post-media-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 4px;
@@ -89,37 +89,37 @@
     height: auto;
 }
 
-.grid-view .fx-tweet-media-grid img {
+.grid-view .fx-post-media-grid img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     max-height: 175px;
 }
 
-/* Container queries for responsive tweet sizing */
+/* Container queries for responsive post sizing */
 @container (max-width: 350px) {
-    .fx-tweet {
+    .fx-post {
         padding: 10px 12px;
     }
 
-    .fx-tweet-avatar {
+    .fx-post-avatar {
         width: 40px;
         height: 40px;
     }
 
-    .fx-tweet-name {
+    .fx-post-name {
         font-size: 14px;
     }
 
-    .fx-tweet-handle {
+    .fx-post-handle {
         font-size: 13px;
     }
 
-    .fx-tweet-content p {
+    .fx-post-content p {
         font-size: 14px;
     }
 
-    .fx-tweet-footer {
+    .fx-post-footer {
         font-size: 13px;
     }
 }

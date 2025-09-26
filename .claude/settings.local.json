@@ -4,7 +4,8 @@
       "Bash(powershell:*)",
       "WebSearch",
       "Bash(move sidebar.js sidebar-old.js)",
-      "Bash(move sidebar-new.js sidebar.js)"
+      "Bash(move sidebar-new.js sidebar.js)",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []

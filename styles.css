@@ -194,7 +194,7 @@ p {
     font-size: 13px;
 }
 
-#tweetEmbedContainer {
+#postEmbedContainer {
     position: relative;
 }
 
@@ -261,7 +261,7 @@ p {
     }
 }
 
-.tweet-embed-new {
+.post-embed-new {
     animation: fadeIn 0.3s forwards;
 }
 
@@ -287,11 +287,11 @@ button:active {
 }
 
 
-.tweet-fallback {
+.post-fallback {
     margin: 10px 0;
 }
 
-.tweet-fallback div {
+.post-fallback div {
     padding: 14px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -300,18 +300,18 @@ button:active {
     min-height: 60px;
 }
 
-.tweet-fallback div:hover {
+.post-fallback div:hover {
     border-color: var(--border-hover);
     background-color: var(--bg-hover);
 }
 
-.tweet-fallback p {
+.post-fallback p {
     margin: 0 0 10px 0;
     color: var(--text-secondary);
     font-size: 14px;
 }
 
-.tweet-fallback a {
+.post-fallback a {
     color: var(--accent);
     text-decoration: none;
     word-break: break-all;
@@ -319,7 +319,7 @@ button:active {
     line-height: 1.4;
 }
 
-.tweet-fallback a:hover {
+.post-fallback a:hover {
     text-decoration: underline;
     color: var(--accent-hover);
 }
@@ -406,20 +406,20 @@ button:active {
     margin-top: 10px; /* Minimal space before triggering load */
 }
 
-/* Responsive embedded tweets */
-.twitter-tweet {
+/* Responsive embedded posts */
+.x-post {
     margin: 10px auto !important;
 }
 
-/* Custom styles for embedded tweets in dark mode */
+/* Custom styles for embedded posts in dark mode */
 @media (prefers-color-scheme: dark) {
-    .twitter-tweet {
-        /* Twitter embeds will inherit some dark styling */
+    .x-post {
+        /*  embeds will inherit some dark styling */
     }
 }
 
-body.dark-theme .twitter-tweet {
-    /* Force dark theme for Twitter embeds when manually set */
+body.dark-theme .x-post {
+    /* Force dark theme for  embeds when manually set */
 }
 
 /* Search container */

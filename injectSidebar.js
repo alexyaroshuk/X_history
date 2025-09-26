@@ -12,7 +12,7 @@
   sidebar.style.transition = "right 0.2s"; // Smooth transition for toggling
 
   sidebar.innerHTML = `<iframe src="${chrome.runtime.getURL(
-    "sidebar.html"
+    "popup.html"
   )}" style="height:100%; width:100%; border:none;"></iframe>`;
   document.body.appendChild(sidebar);
 

@@ -112,18 +112,18 @@ function toggleTheme() {
     updateThemeIcon(true);
   }
 
-  // Refresh tweets with new theme
-  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
-  if (tweetEmbedContainer) {
-    // Re-render tweets with new theme
-    const tweets = tweetEmbedContainer.querySelectorAll('.tweet-item');
-    tweets.forEach(tweet => {
-      const url = tweet.dataset.tweetUrl;
+  // Refresh posts with new theme
+  const postEmbedContainer = document.getElementById("postEmbedContainer");
+  if (postEmbedContainer) {
+    // Re-render posts with new theme
+    const posts = postEmbedContainer.querySelectorAll('.post-item');
+    posts.forEach(post => {
+      const url = post.dataset.postUrl;
       if (url) {
         // Re-render with cached data
-        tweetDB.getTweet(url).then(cachedTweet => {
-          if (cachedTweet && cachedTweet.fxData) {
-            renderFxTweet(tweet, cachedTweet.fxData, url, currentSearchQuery);
+        postDB.getPost(url).then(cachedPost => {
+          if (cachedPost && cachedPost.fxData) {
+            renderFxPost(post, cachedPost.fxData, url, currentSearchQuery);
           }
         });
       }
@@ -149,7 +149,7 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e)
 
 document.addEventListener("DOMContentLoaded", async function () {
   // Initialize database
-  await tweetDB.init();
+  await postDB.init();
   // Initialize theme
   initTheme();
 
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const themeToggle = document.getElementById("themeToggle");
   const historyPageBtn = document.getElementById("historyPageBtn");
   const toggleViewButton = document.getElementById("toggleViewButton");
-  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+  const postEmbedContainer = document.getElementById("postEmbedContainer");
   const simpleUrlList = document.getElementById("simpleUrlList");
   const searchInput = document.getElementById("searchInput");
   const searchButton = document.getElementById("searchButton");
@@ -179,7 +179,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // Hide toggle button and simple list - always use embedded view
-  tweetEmbedContainer.style.display = "block";
+  postEmbedContainer.style.display = "block";
   simpleUrlList.style.display = "none";
   toggleViewButton.style.display = "none"; // Hide toggle button
 
@@ -225,10 +225,10 @@ document.addEventListener("DOMContentLoaded", async function () {
       console.log('[Search] Searching for:', query);
 
       // Search in IndexedDB
-      const searchResults = await tweetDB.searchTweets(query);
-      const searchUrls = searchResults.map(tweet => tweet.url);
+      const searchResults = await postDB.searchPosts(query);
+      const searchUrls = searchResults.map(post => post.url);
 
-      console.log(`[Search] Found ${searchUrls.length} matching tweets`);
+      console.log(`[Search] Found ${searchUrls.length} matching posts`);
 
       // Update the display with search results
       updateUrlList(searchUrls, true);
@@ -252,15 +252,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   clearButton.addEventListener("click", async function () {
     if (confirm("Are you sure you want to clear all URLs? This action cannot be undone.")) {
       // Clear IndexedDB
-      await tweetDB.clearAll();
+      await postDB.clearAll();
 
       chrome.storage.local.set({ urls: [] }, () => {
         console.log("[Clear] Clearing all URLs and resetting pagination");
 
-        // Clear the tweet embed container
-        const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
-        while (tweetEmbedContainer.firstChild) {
-          tweetEmbedContainer.removeChild(tweetEmbedContainer.firstChild);
+        // Clear the post embed container
+        const postEmbedContainer = document.getElementById("postEmbedContainer");
+        while (postEmbedContainer.firstChild) {
+          postEmbedContainer.removeChild(postEmbedContainer.firstChild);
         }
 
         // Clear state
@@ -287,22 +287,22 @@ function getPaginatedUrls(urls, page) {
   return urls.slice(startIndex, endIndex);
 }
 
-// Embed tweet using FxEmbed
-async function embedTweetFx(url) {
-  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+// Embed post using FxEmbed
+async function embedPostFx(url) {
+  const postEmbedContainer = document.getElementById("postEmbedContainer");
 
-  const tweetElement = await createFxTweetElement(url, currentSearchQuery);
-  tweetEmbedContainer.appendChild(tweetElement);
+  const postElement = await createFxPostElement(url, currentSearchQuery);
+  postEmbedContainer.appendChild(postElement);
 
   // Add fade-in animation
-  tweetElement.classList.add("tweet-embed-new");
+  postElement.classList.add("post-embed-new");
   setTimeout(() => {
-    tweetElement.classList.remove("tweet-embed-new");
+    postElement.classList.remove("post-embed-new");
   }, 1000);
 }
 
 function updateUrlList(urls, isFromSearch = false) {
-  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+  const postEmbedContainer = document.getElementById("postEmbedContainer");
   const searchResultsInfo = document.getElementById("searchResultsInfo");
 
   console.log(`[UpdateUrlList] Called with ${urls.length} URLs${isFromSearch ? ' from search' : ''}`);
@@ -323,15 +323,15 @@ function updateUrlList(urls, isFromSearch = false) {
   // Always show embedded view
   if (urls.length === 0) {
     document.getElementById("emptyList").style.display = "block";
-    tweetEmbedContainer.style.display = "none";
+    postEmbedContainer.style.display = "none";
     document.getElementById("clearButton").style.display = "none";
   } else {
-    tweetEmbedContainer.style.display = "block";
+    postEmbedContainer.style.display = "block";
     document.getElementById("emptyList").style.display = "none";
     document.getElementById("clearButton").style.display = "block";
 
     // Clear existing content
-    tweetEmbedContainer.innerHTML = '';
+    postEmbedContainer.innerHTML = '';
 
     // Load first page
     loadNextPage();
@@ -364,7 +364,7 @@ function loadNextPage() {
   const loadingPageNumber = currentPage + 1;
   console.log(`[LoadNextPage] Loading page ${loadingPageNumber}`);
 
-  const tweetEmbedContainer = document.getElementById("tweetEmbedContainer");
+  const postEmbedContainer = document.getElementById("postEmbedContainer");
 
   // Get URLs for current page
   const pageUrls = getPaginatedUrls(allUrls, currentPage);
@@ -377,7 +377,7 @@ function loadNextPage() {
   pageUrls.forEach((url, index) => {
     // Add slight delay between embeds to prevent overwhelming the API
     setTimeout(async () => {
-      await embedTweetFx(url);
+      await embedPostFx(url);
       loadedCount++;
 
       // Hide loading skeleton after last item
@@ -398,7 +398,7 @@ function loadNextPage() {
 }
 
 function showLoadingSkeleton() {
-  const container = document.getElementById("tweetEmbedContainer");
+  const container = document.getElementById("postEmbedContainer");
   const loadingDiv = document.createElement("div");
   loadingDiv.id = "paginationLoadingSkeleton";
   loadingDiv.className = "pagination-loading";
@@ -424,12 +424,12 @@ chrome.storage.local.get({ urls: [] }, async (data) => {
   // Update the list
   updateUrlList(data.urls);
 
-  // Pre-fetch tweets for caching
+  // Pre-fetch posts for caching
   for (const url of data.urls.slice(0, 10)) { // Pre-fetch first 10
-    const cached = await tweetDB.getTweet(url);
+    const cached = await postDB.getPost(url);
     if (!cached || !cached.fxData) {
       // Will be fetched when displayed
-      console.log('[Cache] Tweet will be fetched when displayed:', url);
+      console.log('[Cache] Post will be fetched when displayed:', url);
     }
   }
 });

@@ -1,19 +1,19 @@
 # X History Chrome Extension
 
-A Chrome extension that tracks and saves X (Twitter) posts you view, with full-text search capabilities and offline caching.
+A Chrome extension that tracks and saves X posts you view, with full-text search capabilities and offline caching.
 
 ## Features
 
-- **Automatic Tweet Tracking**: Automatically saves URLs of tweets you view on X.com
-- **IndexedDB Caching**: All tweets are cached locally for instant loading and offline access
-- **Full-Text Search**: Search through your saved tweets by keywords (username, content, etc.)
+- **Automatic Post Tracking**: Automatically saves URLs of posts you view on X.com
+- **IndexedDB Caching**: All posts are cached locally for instant loading and offline access
+- **Full-Text Search**: Search through your saved posts by keywords (username, content, etc.)
 - **Dual View Modes**:
   - Simple URL list view for quick scanning
-  - Embedded tweet view with full Twitter card rendering
+  - Embedded post view with full X card rendering
 - **Dark/Light Theme**: Automatic theme detection with manual toggle
 - **Pagination**: Efficient infinite scroll loading (5 posts at a time)
 - **Persistent Storage**: Your history is saved locally in Chrome storage and IndexedDB
-- **Offline Support**: Cached tweets load instantly without network requests
+- **Offline Support**: Cached posts load instantly without network requests
 
 ## Installation
 
@@ -29,40 +29,40 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 
 ### Basic Operation
 
-1. **Browse X.com**: Navigate to X.com and view tweets normally
-2. **Automatic Tracking**: The extension automatically saves tweet URLs as you browse
+1. **Browse X.com**: Navigate to X.com and view posts normally
+2. **Automatic Tracking**: The extension automatically saves post URLs as you browse
 3. **View History**: Click the extension icon in your toolbar to open the popup
-4. **Search Posts**: Use the search bar to find specific tweets
+4. **Search Posts**: Use the search bar to find specific posts
 
 ### Controls
 
-- **Search Bar**: Enter keywords to filter tweets (searches text content, usernames, etc.)
-- **Clear Search**: Click the X button to reset search and view all tweets
-- **Toggle View**: Switch between simple URL list and embedded tweet views
+- **Search Bar**: Enter keywords to filter posts (searches text content, usernames, etc.)
+- **Clear Search**: Click the X button to reset search and view all posts
+- **Toggle View**: Switch between simple URL list and embedded post views
 - **Theme Toggle**: Switch between light and dark themes
 - **Clear All**: Remove all saved history (requires confirmation)
 
 ### Search Functionality
 
 - Search is case-insensitive
-- Searches across tweet content, usernames, and URLs
+- Searches across post content, usernames, and URLs
 - Multi-word search (all terms must match)
 - Results update instantly as you type
-- Shows count of matching tweets
+- Shows count of matching posts
 
 ### Caching Strategy
 
-1. **First Visit**: Tweet is fetched from Twitter's oEmbed API
-2. **Cached**: Tweet data and HTML stored in IndexedDB
+1. **First Visit**: Post is fetched from X's oEmbed API
+2. **Cached**: Post data and HTML stored in IndexedDB
 3. **Subsequent Views**: Loads instantly from cache without network requests
-4. **Offline Ready**: Works without internet for previously viewed tweets
+4. **Offline Ready**: Works without internet for previously viewed posts
 
 ## Files Structure
 
 ```
 ├── manifest.json          # Extension configuration (Manifest V2)
 ├── background.js          # Background script for URL tracking
-├── sidebar.html           # Popup HTML interface
+├── popup.html           # Popup HTML interface
 ├── sidebar.js             # Main popup functionality
 ├── db.js                  # IndexedDB operations for caching
 ├── styles.css             # Styling for popup interface
@@ -80,10 +80,10 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 ### Architecture
 
 - **Manifest V2**: Chrome extension using Manifest V2
-- **IndexedDB**: Local database for tweet caching and search
+- **IndexedDB**: Local database for post caching and search
 - **Chrome Storage API**: For URL list persistence
-- **Twitter oEmbed API**: For fetching tweet content
-- **Background Script**: Monitors navigation and saves tweet URLs
+- **X oEmbed API**: For fetching post content
+- **Background Script**: Monitors navigation and saves post URLs
 
 ### Permissions
 
@@ -91,14 +91,14 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 - **webNavigation**: Track page navigation
 - **storage**: Save browsing history locally
 - **tabs**: Manage tab state
-- **Twitter domains**: Access to Twitter's API endpoints
+- **X domains**: Access to X's API endpoints
 
 ### Data Storage
 
-- **Chrome Storage**: List of tweet URLs
-- **IndexedDB**: Full tweet data including:
+- **Chrome Storage**: List of post URLs
+- **IndexedDB**: Full post data including:
   - HTML content
-  - Tweet text
+  - Post text
   - Author information
   - Metadata
   - Timestamps
@@ -106,24 +106,24 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 ## Troubleshooting
 
 ### Extension popup is empty
-- Browse some tweets on X.com first
+- Browse some posts on X.com first
 - Check if you're on the correct domain (x.com)
 - Ensure the extension has proper permissions
 
 ### Search not working
-- Make sure tweets are cached (view them first)
+- Make sure posts are cached (view them first)
 - Try refreshing the extension popup
 - Check browser console for errors
 
-### Tweets not loading
+### Posts not loading
 - Check your internet connection for first-time loads
-- Verify Twitter's API is accessible
+- Verify X's API is accessible
 - Try clearing cache and reloading
 
 ## Privacy
 
 - **All data is stored locally** in your browser
-- **No external servers** involved (except Twitter's API)
+- **No external servers** involved (except X's API)
 - **No tracking or analytics**
 - **Data never leaves your device**
 - Clear button removes all stored data permanently

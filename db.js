@@ -1,8 +1,8 @@
-class TweetDatabase {
+class PostDatabase {
   constructor() {
     this.dbName = 'XHistoryDB';
     this.dbVersion = 1;
-    this.storeName = 'tweets';
+    this.storeName = 'posts';
     this.db = null;
   }
 
@@ -33,53 +33,53 @@ class TweetDatabase {
           objectStore.createIndex('username', 'username', { unique: false });
           objectStore.createIndex('text', 'text', { unique: false });
 
-          console.log('Tweet store created with indices');
+          console.log('Post store created with indices');
         }
       };
     });
   }
 
-  async saveTweet(tweetData) {
+  async savePost(postData) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const tweet = {
-        url: tweetData.url,
-        html: tweetData.html,
-        text: tweetData.text || this.extractTextFromHtml(tweetData.html),
-        username: tweetData.username || this.extractUsernameFromUrl(tweetData.url),
-        timestamp: tweetData.timestamp || Date.now(),
-        authorName: tweetData.authorName,
-        authorUrl: tweetData.authorUrl,
-        providerName: tweetData.providerName,
-        providerUrl: tweetData.providerUrl,
-        type: tweetData.type,
-        width: tweetData.width,
-        height: tweetData.height,
-        version: tweetData.version,
-        cacheControl: tweetData.cacheControl,
-        fxData: tweetData.fxData,  // Save FxEmbed data if available
+      const post = {
+        url: postData.url,
+        html: postData.html,
+        text: postData.text || this.extractTextFromHtml(postData.html),
+        username: postData.username || this.extractUsernameFromUrl(postData.url),
+        timestamp: postData.timestamp || Date.now(),
+        authorName: postData.authorName,
+        authorUrl: postData.authorUrl,
+        providerName: postData.providerName,
+        providerUrl: postData.providerUrl,
+        type: postData.type,
+        width: postData.width,
+        height: postData.height,
+        version: postData.version,
+        cacheControl: postData.cacheControl,
+        fxData: postData.fxData,  // Save FxEmbed data if available
         savedAt: Date.now()
       };
 
-      const request = store.put(tweet);
+      const request = store.put(post);
 
       request.onsuccess = () => {
-        console.log('Tweet saved to IndexedDB:', tweet.url);
-        resolve(tweet);
+        console.log('Post saved to IndexedDB:', post.url);
+        resolve(post);
       };
 
       request.onerror = () => {
-        console.error('Failed to save tweet:', request.error);
+        console.error('Failed to save post:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async getTweet(url) {
+  async getPost(url) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -97,7 +97,7 @@ class TweetDatabase {
     });
   }
 
-  async getAllTweets() {
+  async getAllPosts() {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -115,32 +115,32 @@ class TweetDatabase {
     });
   }
 
-  async searchTweets(query) {
+  async searchPosts(query) {
     if (!this.db) await this.init();
 
-    const allTweets = await this.getAllTweets();
+    const allPosts = await this.getAllPosts();
 
     if (!query || query.trim() === '') {
-      return allTweets.sort((a, b) => b.timestamp - a.timestamp);
+      return allPosts.sort((a, b) => b.timestamp - a.timestamp);
     }
 
     const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 0);
 
-    const filteredTweets = allTweets.filter(tweet => {
+    const filteredPosts = allPosts.filter(post => {
       const searchableText = [
-        tweet.text || '',
-        tweet.username || '',
-        tweet.authorName || '',
-        tweet.url || ''
+        post.text || '',
+        post.username || '',
+        post.authorName || '',
+        post.url || ''
       ].join(' ').toLowerCase();
 
       return searchTerms.every(term => searchableText.includes(term));
     });
 
-    return filteredTweets.sort((a, b) => b.timestamp - a.timestamp);
+    return filteredPosts.sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  async deleteTweet(url) {
+  async deletePost(url) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -149,7 +149,7 @@ class TweetDatabase {
       const request = store.delete(url);
 
       request.onsuccess = () => {
-        console.log('Tweet deleted from IndexedDB:', url);
+        console.log('Post deleted from IndexedDB:', url);
         resolve();
       };
 
@@ -168,7 +168,7 @@ class TweetDatabase {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('All tweets cleared from IndexedDB');
+        console.log('All posts cleared from IndexedDB');
         resolve();
       };
 
@@ -184,7 +184,7 @@ class TweetDatabase {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
-    const blockquotes = tempDiv.querySelectorAll('blockquote.twitter-tweet');
+    const blockquotes = tempDiv.querySelectorAll('blockquote.x-post');
     let text = '';
 
     blockquotes.forEach(blockquote => {
@@ -214,13 +214,13 @@ class TweetDatabase {
     return '';
   }
 
-  async getTweetsByUrls(urls) {
+  async getPostsByUrls(urls) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
-      const tweets = [];
+      const posts = [];
       let completed = 0;
 
       if (urls.length === 0) {
@@ -233,18 +233,18 @@ class TweetDatabase {
 
         request.onsuccess = () => {
           if (request.result) {
-            tweets.push(request.result);
+            posts.push(request.result);
           }
           completed++;
           if (completed === urls.length) {
-            resolve(tweets);
+            resolve(posts);
           }
         };
 
         request.onerror = () => {
           completed++;
           if (completed === urls.length) {
-            resolve(tweets);
+            resolve(posts);
           }
         };
       });
@@ -252,8 +252,8 @@ class TweetDatabase {
   }
 }
 
-const tweetDB = new TweetDatabase();
+const postDB = new PostDatabase();
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = TweetDatabase;
+  module.exports = PostDatabase;
 }

@@ -6,7 +6,7 @@ const POSTS_PER_PAGE = 20; // Reduced for better performance with embeds
 let currentView = 'grid';
 let currentSort = 'newest';
 let searchQuery = '';
-let tweetCache = {};
+let postCache = {};
 // Always use FxEmbed only
 
 // Initialize theme
@@ -52,18 +52,18 @@ async function loadPosts() {
             }));
 
             // Try to get additional data from IndexedDB
-            await tweetDB.init();
+            await postDB.init();
             for (let post of allPosts) {
-                const tweetData = await tweetDB.getTweet(post.url);
-                if (tweetData) {
-                    post.authorName = tweetData.authorName;
+                const postData = await postDB.getPost(post.url);
+                if (postData) {
+                    post.authorName = postData.authorName;
                     // Try to get text from various sources
-                    if (tweetData.text) {
-                        post.text = tweetData.text;
-                    } else if (tweetData.fxData && tweetData.fxData.text) {
-                        post.text = tweetData.fxData.text;
-                    } else if (tweetData.html) {
-                        post.text = extractTextFromHTML(tweetData.html);
+                    if (postData.text) {
+                        post.text = postData.text;
+                    } else if (postData.fxData && postData.fxData.text) {
+                        post.text = postData.fxData.text;
+                    } else if (postData.html) {
+                        post.text = extractTextFromHTML(postData.html);
                     }
                 }
             }
@@ -74,7 +74,7 @@ async function loadPosts() {
     });
 }
 
-// Extract text from tweet HTML
+// Extract text from post HTML
 function extractTextFromHTML(html) {
     if (!html) return '';
     const div = document.createElement('div');
@@ -138,10 +138,10 @@ function applyMasonryLayout() {
 
     posts.forEach((post, index) => {
         // Wait for content to be loaded before positioning
-        if (!post.classList.contains('tweet-loaded')) {
-            // Try again after tweet loads
+        if (!post.classList.contains('post-loaded')) {
+            // Try again after post loads
             const observer = new MutationObserver((mutations, obs) => {
-                if (post.classList.contains('tweet-loaded')) {
+                if (post.classList.contains('post-loaded')) {
                     obs.disconnect();
                     applyMasonryLayout();
                 }
@@ -215,36 +215,36 @@ function renderPosts(reset = false) {
 
     document.getElementById('loadingMessage').style.display = 'none';
 
-    // Check if all tweets are loaded after a short delay
-    setTimeout(checkAllTweetsLoaded, 500);
+    // Check if all posts are loaded after a short delay
+    setTimeout(checkAllPostsLoaded, 500);
 }
 
-// Check if all visible tweets are loaded
+// Check if all visible posts are loaded
 let renderStartTime = null;
 
-function checkAllTweetsLoaded() {
+function checkAllPostsLoaded() {
     const allPosts = document.querySelectorAll('.post-item');
-    const loadedPosts = document.querySelectorAll('.post-item.tweet-loaded');
+    const loadedPosts = document.querySelectorAll('.post-item.post-loaded');
 
     if (allPosts.length > 0 && allPosts.length === loadedPosts.length) {
         if (renderStartTime) {
             const renderEndTime = performance.now();
             const renderTime = (renderEndTime - renderStartTime).toFixed(2);
-            console.log(`✅ All ${allPosts.length} tweets loaded in ${renderTime}ms using FxEmbed`);
+            console.log(`✅ All ${allPosts.length} posts loaded in ${renderTime}ms using FxEmbed`);
             renderStartTime = null;
 
-            // Apply masonry layout after all tweets are loaded
+            // Apply masonry layout after all posts are loaded
             if (currentView === 'grid') {
                 applyMasonryLayout();
             }
         }
     } else if (allPosts.length > 0) {
         // Check again
-        setTimeout(checkAllTweetsLoaded, 100);
+        setTimeout(checkAllPostsLoaded, 100);
     }
 }
 
-// Create post element with embedded tweet
+// Create post element with embedded post
 function createPostElement(post) {
     const div = document.createElement('div');
     div.className = 'post-item';
@@ -259,8 +259,8 @@ function createPostElement(post) {
     div.innerHTML = `
         <input type="checkbox" class="post-checkbox" ${selectedPosts.has(post.id) ? 'checked' : ''}>
         <div class="post-content">
-            <div class="tweet-embed-placeholder">
-                <div class="tweet-skeleton">
+            <div class="post-embed-placeholder">
+                <div class="post-skeleton">
                     <div class="skeleton-header">
                         <div class="skeleton-avatar"></div>
                         <div class="skeleton-author">
@@ -290,50 +290,50 @@ function createPostElement(post) {
         togglePostSelection(post.id);
     });
 
-    // Embed the tweet
-    embedTweetInElement(post.url, div);
+    // Embed the post
+    embedPostInElement(post.url, div);
 
     return div;
 }
 
-// Embed tweet using FxEmbed only
-async function embedTweetInElement(url, container) {
-    embedTweetFxEmbed(url, container);
+// Embed post using FxEmbed only
+async function embedPostInElement(url, container) {
+    embedPostFxEmbed(url, container);
 }
 
-// Embed tweet using FxEmbed API
-async function embedTweetFxEmbed(url, container) {
+// Embed post using FxEmbed API
+async function embedPostFxEmbed(url, container) {
     const contentDiv = container.querySelector('.post-content');
 
-    // Convert Twitter/X URL to FxEmbed API URL
-    const tweetId = extractTweetId(url);
-    if (!tweetId) {
+    // Convert X URL to FxEmbed API URL
+    const postId = extractPostId(url);
+    if (!postId) {
         showFallback(contentDiv, url, container);
         return;
     }
 
-    // Check if tweet is cached in IndexedDB
-    const cachedTweet = await tweetDB.getTweet(url);
-    if (cachedTweet && cachedTweet.fxData) {
-        renderFxTweet(contentDiv, cachedTweet.fxData, container, url);
+    // Check if post is cached in IndexedDB
+    const cachedPost = await postDB.getPost(url);
+    if (cachedPost && cachedPost.fxData) {
+        renderFxPost(contentDiv, cachedPost.fxData, container, url);
         return;
     }
 
     // Fetch from FxEmbed API
-    fetch(`https://api.fxtwitter.com/status/${tweetId}`)
+    fetch(`https://api.fxtwitter.com/status/${postId}`)
         .then(response => response.json())
         .then(async (data) => {
             if (data && data.tweet) {
                 // Save to IndexedDB cache
-                await tweetDB.saveTweet({
+                await postDB.savePost({
                     url: url,
                     fxData: data.tweet,
                     text: data.tweet.text || '',  // Extract text from FxEmbed data
                     authorName: data.tweet.author?.name,
-                    authorUrl: `https://twitter.com/${data.tweet.author?.screen_name}`
+                    authorUrl: `https://x.com/${data.tweet.author?.screen_name}`
                 });
 
-                renderFxTweet(contentDiv, data.tweet, container, url);
+                renderFxPost(contentDiv, data.tweet, container, url);
             } else {
                 throw new Error('Invalid response from FxEmbed');
             }
@@ -345,116 +345,116 @@ async function embedTweetFxEmbed(url, container) {
 }
 
 
-// Extract tweet ID from URL
-function extractTweetId(url) {
+// Extract post ID from URL
+function extractPostId(url) {
     const match = url.match(/status\/(\d+)/);
     return match ? match[1] : null;
 }
 
-// Render FxEmbed tweet data
-function renderFxTweet(contentDiv, tweetData, container, url) {
-    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
+// Render FxEmbed post data
+function renderFxPost(contentDiv, postData, container, url) {
+    const skeleton = contentDiv.querySelector('.post-embed-placeholder');
     if (skeleton) skeleton.remove();
 
     const isDarkMode = document.body.classList.contains("dark-theme");
 
-    // Build the tweet HTML - different structure for list view
+    // Build the post HTML - different structure for list view
     const isListView = document.getElementById('contentArea').classList.contains('list-view');
-    const hasMedia = tweetData.media?.photos?.length || tweetData.media?.videos?.length;
+    const hasMedia = postData.media?.photos?.length || postData.media?.videos?.length;
 
-    let tweetHTML;
+    let postHTML;
     if (isListView && hasMedia) {
         // List view with media - side by side layout
-        tweetHTML = `
-            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
-                <div class="fx-tweet-wrapper">
-                    <div class="fx-tweet-main">
-                        <div class="fx-tweet-header">
-                            <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
-                            <div class="fx-tweet-author">
-                                <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
-                                <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+        postHTML = `
+            <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
+                <div class="fx-post-wrapper">
+                    <div class="fx-post-main">
+                        <div class="fx-post-header">
+                            <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
+                            <div class="fx-post-author">
+                                <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
+                                <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
                             </div>
                         </div>
-                        <div class="fx-tweet-content">
-                            ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
+                        <div class="fx-post-content">
+                            ${postData.text ? `<p>${highlightSearchText(postData.text, searchQuery)}</p>` : ''}
                         </div>
                     </div>
-                    <div class="fx-tweet-media-container">
-                        ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
-                        ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
+                    <div class="fx-post-media-container">
+                        ${postData.media?.photos?.length ? renderPhotos(postData.media.photos) : ''}
+                        ${postData.media?.videos?.length ? renderVideo(postData.media.videos[0]) : ''}
                     </div>
                 </div>
-                <div class="fx-tweet-footer">
-                    <div class="fx-tweet-stats">
-                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
-                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
-                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                <div class="fx-post-footer">
+                    <div class="fx-post-stats">
+                        <span>❤️ ${formatNumber(postData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(postData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(postData.replies || 0)}</span>
                     </div>
-                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                    <div class="fx-post-date">${formatDate(postData.created_at)}</div>
                 </div>
             </div>
         `;
     } else if (isListView && !hasMedia) {
         // List view without media
-        tweetHTML = `
-            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
-                <div class="fx-tweet-header">
-                    <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
-                    <div class="fx-tweet-author">
-                        <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
-                        <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+        postHTML = `
+            <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
+                <div class="fx-post-header">
+                    <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
+                    <div class="fx-post-author">
+                        <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
+                        <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
                     </div>
                 </div>
-                <div class="fx-tweet-content">
-                    ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
+                <div class="fx-post-content">
+                    ${postData.text ? `<p>${highlightSearchText(postData.text, searchQuery)}</p>` : ''}
                 </div>
-                <div class="fx-tweet-footer">
-                    <div class="fx-tweet-stats">
-                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
-                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
-                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                <div class="fx-post-footer">
+                    <div class="fx-post-stats">
+                        <span>❤️ ${formatNumber(postData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(postData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(postData.replies || 0)}</span>
                     </div>
-                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                    <div class="fx-post-date">${formatDate(postData.created_at)}</div>
                 </div>
             </div>
         `;
     } else {
         // Grid view - standard layout with media included in content
-        tweetHTML = `
-            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
-                <div class="fx-tweet-header">
-                    <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
-                    <div class="fx-tweet-author">
-                        <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
-                        <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+        postHTML = `
+            <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
+                <div class="fx-post-header">
+                    <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
+                    <div class="fx-post-author">
+                        <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
+                        <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
                     </div>
                 </div>
-                <div class="fx-tweet-content">
-                    ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
-                    ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
-                    ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
+                <div class="fx-post-content">
+                    ${postData.text ? `<p>${highlightSearchText(postData.text, searchQuery)}</p>` : ''}
+                    ${postData.media?.photos?.length ? renderPhotos(postData.media.photos) : ''}
+                    ${postData.media?.videos?.length ? renderVideo(postData.media.videos[0]) : ''}
                 </div>
-                <div class="fx-tweet-footer">
-                    <div class="fx-tweet-stats">
-                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
-                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
-                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                <div class="fx-post-footer">
+                    <div class="fx-post-stats">
+                        <span>❤️ ${formatNumber(postData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(postData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(postData.replies || 0)}</span>
                     </div>
-                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                    <div class="fx-post-date">${formatDate(postData.created_at)}</div>
                 </div>
             </div>
         `;
     }
 
-    contentDiv.innerHTML = tweetHTML;
-    container.classList.add('tweet-loaded');
+    contentDiv.innerHTML = postHTML;
+    container.classList.add('post-loaded');
 
-    // Make the tweet clickable
-    const tweetElement = contentDiv.querySelector('.fx-tweet');
-    if (tweetElement) {
-        tweetElement.addEventListener('click', (e) => {
-            // Don't open link if clicking on an existing link inside the tweet
+    // Make the post clickable
+    const postElement = contentDiv.querySelector('.fx-post');
+    if (postElement) {
+        postElement.addEventListener('click', (e) => {
+            // Don't open link if clicking on an existing link inside the post
             if (e.target.tagName === 'A' || e.target.closest('a')) {
                 return;
             }
@@ -466,9 +466,9 @@ function renderFxTweet(contentDiv, tweetData, container, url) {
 // Helper functions
 function linkifyText(text) {
     return text
-        .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" rel="noopener" class="tweet-link">$&</a>')
-        .replace(/@(\w+)/g, '<a href="https://twitter.com/$1" target="_blank" rel="noopener" class="tweet-mention">@$1</a>')
-        .replace(/#(\w+)/g, '<a href="https://twitter.com/hashtag/$1" target="_blank" rel="noopener" class="tweet-hashtag">#$1</a>');
+        .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" rel="noopener" class="post-link">$&</a>')
+        .replace(/@(\w+)/g, '<a href="https://x.com/$1" target="_blank" rel="noopener" class="post-mention">@$1</a>')
+        .replace(/#(\w+)/g, '<a href="https://x.com/hashtag/$1" target="_blank" rel="noopener" class="post-hashtag">#$1</a>');
 }
 
 // Helper function to highlight search matches
@@ -511,18 +511,18 @@ function highlightTextOnly(text, searchQuery) {
 
 function renderPhotos(photos) {
     if (photos.length === 1) {
-        return `<img class="fx-tweet-media" src="${photos[0].url}" alt="Tweet media">`;
+        return `<img class="fx-post-media" src="${photos[0].url}" alt="Post media">`;
     }
     return `
-        <div class="fx-tweet-media-grid">
-            ${photos.map(photo => `<img src="${photo.url}" alt="Tweet media">`).join('')}
+        <div class="fx-post-media-grid">
+            ${photos.map(photo => `<img src="${photo.url}" alt="Post media">`).join('')}
         </div>
     `;
 }
 
 function renderVideo(video) {
     return `
-        <video class="fx-tweet-media" controls>
+        <video class="fx-post-media" controls>
             <source src="${video.url}" type="video/mp4">
         </video>
     `;
@@ -542,7 +542,7 @@ function formatDate(dateStr) {
 
 
 function showFallback(contentDiv, url, container) {
-    const skeleton = contentDiv.querySelector('.tweet-embed-placeholder');
+    const skeleton = contentDiv.querySelector('.post-embed-placeholder');
     if (skeleton) skeleton.remove();
 
     const urlParts = url.split('/');
@@ -551,11 +551,11 @@ function showFallback(contentDiv, url, container) {
     contentDiv.innerHTML = `
         <div class="tweet-fallback">
             <div class="post-author">@${username}</div>
-            <div class="post-error">Tweet preview unavailable</div>
+            <div class="post-error">Post preview unavailable</div>
             <a href="${url}" target="_blank" class="post-link">View on X →</a>
         </div>
     `;
-    container.classList.add('tweet-loaded');
+    container.classList.add('post-loaded');
 }
 
 
@@ -610,7 +610,7 @@ async function deleteSelected() {
         for (let postId of selectedPosts) {
             const post = allPosts.find(p => p.id === postId);
             if (post) {
-                await tweetDB.deleteTweet(post.url);
+                await postDB.deletePost(post.url);
             }
         }
 
@@ -665,7 +665,7 @@ function importPosts(file) {
 
                         // Save to IndexedDB if we have additional data
                         if (post.authorName || post.text) {
-                            await tweetDB.saveTweet({
+                            await postDB.savePost({
                                 url: post.url,
                                 authorName: post.authorName,
                                 text: post.text
@@ -700,7 +700,7 @@ async function clearAll() {
     }
 
     chrome.storage.local.set({ urls: [] }, async () => {
-        await tweetDB.clearAll();
+        await postDB.clearAll();
         allPosts = [];
         filteredPosts = [];
         selectedPosts.clear();
