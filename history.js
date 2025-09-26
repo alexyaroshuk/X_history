@@ -57,7 +57,14 @@ async function loadPosts() {
                 const tweetData = await tweetDB.getTweet(post.url);
                 if (tweetData) {
                     post.authorName = tweetData.authorName;
-                    post.text = extractTextFromHTML(tweetData.html);
+                    // Try to get text from various sources
+                    if (tweetData.text) {
+                        post.text = tweetData.text;
+                    } else if (tweetData.fxData && tweetData.fxData.text) {
+                        post.text = tweetData.fxData.text;
+                    } else if (tweetData.html) {
+                        post.text = extractTextFromHTML(tweetData.html);
+                    }
                 }
             }
 
@@ -104,7 +111,7 @@ function renderPosts(reset = false) {
 
     // Update UI
     updateStats();
-    updateLoadMoreButton();
+    updateLoadMoreIndicator();
 
     if (filteredPosts.length === 0) {
         document.getElementById('emptyMessage').style.display = 'block';
@@ -112,6 +119,9 @@ function renderPosts(reset = false) {
     } else {
         document.getElementById('emptyMessage').style.display = 'none';
         document.getElementById('postsContainer').style.display = currentView === 'grid' ? 'grid' : 'flex';
+
+        // Setup infinite scroll after rendering posts
+        setupInfiniteScroll();
     }
 
     document.getElementById('loadingMessage').style.display = 'none';
@@ -228,6 +238,7 @@ async function embedTweetFxEmbed(url, container) {
                 await tweetDB.saveTweet({
                     url: url,
                     fxData: data.tweet,
+                    text: data.tweet.text || '',  // Extract text from FxEmbed data
                     authorName: data.tweet.author?.name,
                     authorUrl: `https://twitter.com/${data.tweet.author?.screen_name}`
                 });
@@ -292,31 +303,94 @@ function renderFxTweet(contentDiv, tweetData, container, url) {
 
     const isDarkMode = document.body.classList.contains("dark-theme");
 
-    // Build the tweet HTML
-    const tweetHTML = `
-        <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
-            <div class="fx-tweet-header">
-                <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
-                <div class="fx-tweet-author">
-                    <div class="fx-tweet-name">${tweetData.author?.name || 'Unknown'}</div>
-                    <div class="fx-tweet-handle">@${tweetData.author?.screen_name || 'unknown'}</div>
+    // Build the tweet HTML - different structure for list view
+    const isListView = document.getElementById('contentArea').classList.contains('list-view');
+    const hasMedia = tweetData.media?.photos?.length || tweetData.media?.videos?.length;
+
+    let tweetHTML;
+    if (isListView && hasMedia) {
+        // List view with media - side by side layout
+        tweetHTML = `
+            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
+                <div class="fx-tweet-wrapper">
+                    <div class="fx-tweet-main">
+                        <div class="fx-tweet-header">
+                            <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
+                            <div class="fx-tweet-author">
+                                <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
+                                <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+                            </div>
+                        </div>
+                        <div class="fx-tweet-content">
+                            ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="fx-tweet-media-container">
+                        ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
+                        ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
+                    </div>
+                </div>
+                <div class="fx-tweet-footer">
+                    <div class="fx-tweet-stats">
+                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                    </div>
+                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
                 </div>
             </div>
-            <div class="fx-tweet-content">
-                ${tweetData.text ? `<p>${linkifyText(tweetData.text)}</p>` : ''}
-                ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
-                ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
-            </div>
-            <div class="fx-tweet-footer">
-                <div class="fx-tweet-stats">
-                    <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
-                    <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
-                    <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+        `;
+    } else if (isListView && !hasMedia) {
+        // List view without media
+        tweetHTML = `
+            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
+                <div class="fx-tweet-header">
+                    <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
+                    <div class="fx-tweet-author">
+                        <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
+                        <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+                    </div>
                 </div>
-                <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                <div class="fx-tweet-content">
+                    ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
+                </div>
+                <div class="fx-tweet-footer">
+                    <div class="fx-tweet-stats">
+                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                    </div>
+                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+    } else {
+        // Grid view - standard layout with media included in content
+        tweetHTML = `
+            <div class="fx-tweet ${isDarkMode ? 'dark' : 'light'}" data-tweet-url="${url}">
+                <div class="fx-tweet-header">
+                    <img class="fx-tweet-avatar" src="${tweetData.author?.avatar_url || ''}" alt="${tweetData.author?.name}">
+                    <div class="fx-tweet-author">
+                        <div class="fx-tweet-name">${searchQuery ? highlightTextOnly(tweetData.author?.name || 'Unknown', searchQuery) : tweetData.author?.name || 'Unknown'}</div>
+                        <div class="fx-tweet-handle">${searchQuery ? highlightTextOnly(`@${tweetData.author?.screen_name || 'unknown'}`, searchQuery) : `@${tweetData.author?.screen_name || 'unknown'}`}</div>
+                    </div>
+                </div>
+                <div class="fx-tweet-content">
+                    ${tweetData.text ? `<p>${highlightSearchText(tweetData.text, searchQuery)}</p>` : ''}
+                    ${tweetData.media?.photos?.length ? renderPhotos(tweetData.media.photos) : ''}
+                    ${tweetData.media?.videos?.length ? renderVideo(tweetData.media.videos[0]) : ''}
+                </div>
+                <div class="fx-tweet-footer">
+                    <div class="fx-tweet-stats">
+                        <span>❤️ ${formatNumber(tweetData.likes || 0)}</span>
+                        <span>🔁 ${formatNumber(tweetData.retweets || 0)}</span>
+                        <span>💬 ${formatNumber(tweetData.replies || 0)}</span>
+                    </div>
+                    <div class="fx-tweet-date">${formatDate(tweetData.created_at)}</div>
+                </div>
+            </div>
+        `;
+    }
 
     contentDiv.innerHTML = tweetHTML;
     container.classList.add('tweet-loaded');
@@ -340,6 +414,39 @@ function linkifyText(text) {
         .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank">$&</a>')
         .replace(/@(\w+)/g, '<a href="https://twitter.com/$1" target="_blank">@$1</a>')
         .replace(/#(\w+)/g, '<a href="https://twitter.com/hashtag/$1" target="_blank">#$1</a>');
+}
+
+// Helper function to highlight search matches
+function highlightSearchText(text, searchQuery) {
+    if (!searchQuery || !text) return text;
+
+    // First apply linkify
+    let result = linkifyText(text);
+
+    // Then apply highlighting (avoiding links)
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Split by HTML tags to avoid highlighting inside them
+    const parts = result.split(/(<[^>]*>)/);
+    const highlighted = parts.map((part, index) => {
+        // Skip HTML tags (odd indices after split)
+        if (index % 2 === 1) return part;
+
+        // Highlight text in non-tag parts
+        const regex = new RegExp(`(${escapedQuery})`, 'gi');
+        return part.replace(regex, '<mark class="search-highlight">$1</mark>');
+    });
+
+    return highlighted.join('');
+}
+
+// Simple highlight for plain text (no linkification)
+function highlightTextOnly(text, searchQuery) {
+    if (!searchQuery || !text) return text;
+
+    const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    return text.replace(regex, '<mark class="search-highlight">$1</mark>');
 }
 
 function renderPhotos(photos) {
@@ -634,10 +741,92 @@ function updateActionButtons() {
     document.getElementById('deselectAllBtn').style.display = hasSelection ? 'inline-block' : 'none';
 }
 
-// Update load more button
-function updateLoadMoreButton() {
+// Update load more indicator
+function updateLoadMoreIndicator() {
     const hasMore = (currentPage + 1) * POSTS_PER_PAGE < filteredPosts.length;
-    document.getElementById('loadMoreContainer').style.display = hasMore ? 'block' : 'none';
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    loadMoreContainer.style.display = hasMore ? 'block' : 'none';
+
+    if (hasMore) {
+        updateSkeletonPosts();
+    }
+}
+
+// Update skeleton posts based on current view
+function updateSkeletonPosts() {
+    const skeletonContainer = document.getElementById('loadingSkeleton');
+    const isGridView = currentView === 'grid';
+    const numSkeletons = isGridView ? 3 : 2; // Show 3 skeletons for grid, 2 for list
+
+    let skeletonHTML = '';
+    for (let i = 0; i < numSkeletons; i++) {
+        skeletonHTML += `
+            <div class="skeleton-post">
+                <div class="skeleton-header">
+                    <div class="skeleton-avatar"></div>
+                    <div class="skeleton-author">
+                        <div class="skeleton-name"></div>
+                        <div class="skeleton-handle"></div>
+                    </div>
+                </div>
+                <div class="skeleton-content">
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                    <div class="skeleton-line"></div>
+                </div>
+                <div class="skeleton-actions">
+                    <div class="skeleton-action"></div>
+                    <div class="skeleton-action"></div>
+                    <div class="skeleton-action"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    skeletonContainer.innerHTML = skeletonHTML;
+}
+
+// Variables for infinite scroll
+let isLoading = false;
+let scrollObserver;
+
+// Setup infinite scroll observer
+function setupInfiniteScroll() {
+    // Disconnect existing observer if any
+    if (scrollObserver) {
+        scrollObserver.disconnect();
+    }
+
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+
+    scrollObserver = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isLoading) {
+                loadMorePosts();
+            }
+        });
+    }, {
+        rootMargin: '100px' // Start loading 100px before reaching the element
+    });
+
+    scrollObserver.observe(loadMoreContainer);
+}
+
+// Load more posts automatically
+async function loadMorePosts() {
+    if (isLoading) return;
+
+    const hasMore = (currentPage + 1) * POSTS_PER_PAGE < filteredPosts.length;
+    if (!hasMore) return;
+
+    isLoading = true;
+    currentPage++;
+
+    // Small delay to show skeleton loader
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    renderPosts();
+    isLoading = false;
 }
 
 // Switch view
@@ -733,8 +922,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    document.getElementById('loadMoreBtn').addEventListener('click', () => {
-        currentPage++;
-        renderPosts();
-    });
+    // Infinite scroll is now handled by IntersectionObserver
 });

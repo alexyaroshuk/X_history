@@ -61,6 +61,7 @@ class TweetDatabase {
         height: tweetData.height,
         version: tweetData.version,
         cacheControl: tweetData.cacheControl,
+        fxData: tweetData.fxData,  // Save FxEmbed data if available
         savedAt: Date.now()
       };
 

@@ -298,19 +298,16 @@ body {
 .list-view .posts-container {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0;
 }
 
 .list-view .post-item {
     background-color: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1rem 1rem 3rem;
     transition: all 0.2s;
     cursor: pointer;
+    position: relative;
 }
 
 .list-view .post-item:hover {
@@ -349,15 +346,42 @@ body {
 }
 
 .list-view .post-checkbox {
-    position: relative;
-    top: auto;
-    left: auto;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    opacity: 0;
+}
+
+.list-view .post-item:hover .post-checkbox {
+    opacity: 0.7;
+}
+
+.list-view .post-checkbox:checked {
+    opacity: 1 !important;
+}
+
+.list-view .post-item.selected .post-checkbox {
+    opacity: 1;
 }
 
 .post-content {
     flex: 1;
     min-height: 100px;
     position: relative;
+}
+
+/* Search Highlight */
+.search-highlight {
+    background-color: #ffd33d;
+    color: var(--text-primary);
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+body.dark-theme .search-highlight {
+    background-color: #664d00;
+    color: #ffd33d;
 }
 
 /* FxEmbed Tweet Styles */
@@ -375,6 +399,61 @@ body {
 .fx-tweet:hover {
     background: var(--bg-secondary);
     border-color: var(--accent);
+}
+
+/* List View Tweet Modifications */
+.list-view .fx-tweet {
+    border: none;
+    padding: 0;
+    animation: none;
+    background: transparent;
+}
+
+.list-view .fx-tweet:hover {
+    background: transparent;
+    border-color: transparent;
+}
+
+.list-view .fx-tweet-wrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+.list-view .fx-tweet-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.list-view .fx-tweet-media-container {
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.list-view .fx-tweet-media,
+.list-view .fx-tweet-media-grid {
+    margin-top: 0;
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.list-view .fx-tweet-media-grid {
+    display: flex;
+    height: 100px;
+    overflow: hidden;
+}
+
+.list-view .fx-tweet-media-grid img {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.list-view .fx-tweet-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .fx-tweet-header {
@@ -636,25 +715,117 @@ body {
     color: var(--text-secondary);
 }
 
-/* Load More */
+/* Load More / Infinite Scroll */
 .load-more-container {
-    text-align: center;
-    padding: 2rem;
+    padding: 0 2rem 2rem 2rem;
 }
 
-.load-more-btn {
-    padding: 0.75rem 2rem;
-    background-color: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 2rem;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.2s;
+.loading-skeleton {
+    width: 100%;
 }
 
-.load-more-btn:hover {
-    background-color: var(--accent-hover);
+/* Grid view loading skeleton */
+.grid-view ~ .load-more-container .loading-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.grid-view ~ .load-more-container .skeleton-post {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem;
+    min-height: 200px;
+}
+
+/* List view loading skeleton */
+.list-view ~ .load-more-container .loading-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.list-view ~ .load-more-container .skeleton-post {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+/* Reuse the existing skeleton styles for consistency */
+.load-more-container .skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.load-more-container .skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.load-more-container .skeleton-author {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.load-more-container .skeleton-name {
+    height: 16px;
+    width: 120px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.load-more-container .skeleton-handle {
+    height: 14px;
+    width: 80px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.load-more-container .skeleton-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.load-more-container .skeleton-line {
+    height: 14px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.load-more-container .skeleton-line:nth-child(1) { width: 100%; }
+.load-more-container .skeleton-line:nth-child(2) { width: 95%; }
+.load-more-container .skeleton-line:nth-child(3) { width: 85%; }
+
+.load-more-container .skeleton-actions {
+    display: flex;
+    gap: 2rem;
+    margin-top: 0.75rem;
+}
+
+.load-more-container .skeleton-action {
+    height: 14px;
+    width: 40px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--border-color) 25%, var(--bg-hover) 50%, var(--border-color) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
 }
 
 /* Responsive */
@@ -671,7 +842,12 @@ body {
         padding: 1rem;
     }
 
-    .grid-view .posts-container {
+    .load-more-container {
+        padding: 0 1rem 1rem 1rem;
+    }
+
+    .grid-view .posts-container,
+    .grid-view ~ .load-more-container .loading-skeleton {
         grid-template-columns: 1fr;
         gap: 1rem;
     }
