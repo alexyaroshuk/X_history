@@ -17,15 +17,19 @@ function formatNumber(num) {
 // Format date to readable format with time
 function formatDate(dateStr) {
     const date = new Date(dateStr);
-    const options = {
+    const dateOptions = {
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        year: 'numeric'
+    };
+    const timeOptions = {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
     };
-    return date.toLocaleString('en-US', options);
+    const dateString = date.toLocaleDateString('en-US', dateOptions);
+    const timeString = date.toLocaleTimeString('en-US', timeOptions);
+    return `<span class="fx-post-date-day">${dateString}</span><span class="fx-post-date-time">${timeString}</span>`;
 }
 
 // Helper function to highlight search matches
@@ -119,11 +123,6 @@ async function createFxPostElement(url, searchQuery = '') {
                 <div class="skeleton-line"></div>
                 <div class="skeleton-line"></div>
             </div>
-            <div class="skeleton-actions">
-                <div class="skeleton-action"></div>
-                <div class="skeleton-action"></div>
-                <div class="skeleton-action"></div>
-            </div>
         </div>
     `;
 
@@ -182,69 +181,24 @@ function renderFxPost(container, postData, url, searchQuery = '') {
     const isDarkMode = document.body.classList.contains("dark-theme");
     const hasMedia = postData.media?.photos?.length || postData.media?.videos?.length;
 
-    // List view layout
-    let postHTML;
-    if (hasMedia) {
-        // List view with media - side by side layout
-        postHTML = `
-            <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
-                <div class="fx-post-wrapper">
-                    <div class="fx-post-main">
-                        <div class="fx-post-header">
-                            <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
-                            <div class="fx-post-author">
-                                <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
-                                <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
-                            </div>
-                        </div>
-                        <div class="fx-post-content">
-                            ${postData.text ? `<p>${highlightSearchText(postData.text, searchQuery)}</p>` : ''}
-                        </div>
-                    </div>
-                    <div class="fx-post-media-container">
-                        ${postData.media?.photos?.length ? renderPhotos(postData.media.photos) : ''}
-                        ${postData.media?.videos?.length ? renderVideo(postData.media.videos[0]) : ''}
-                    </div>
+    // Single unified layout for all posts
+    let postHTML = `
+        <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
+            <div class="fx-post-header">
+                <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
+                <div class="fx-post-author">
+                    <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
+                    <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
                 </div>
-                <div class="fx-post-footer">
-                    <div class="fx-post-stats">
-                        <span>❤️ ${formatNumber(postData.likes || 0)}</span>
-                        <span>🔁 ${formatNumber(postData.reposts || 0)}</span>
-                        <span>💬 ${formatNumber(postData.replies || 0)}</span>
-                    </div>
-                    <div class="fx-post-date">${formatDate(postData.created_at)}</div>
-                </div>
+                <div class="fx-post-datetime">${formatDate(postData.created_at)}</div>
             </div>
-        `;
-    } else {
-        // List view without media - using same wrapper structure for consistency
-        postHTML = `
-            <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
-                <div class="fx-post-wrapper">
-                    <div class="fx-post-main">
-                        <div class="fx-post-header">
-                            <img class="fx-post-avatar" src="${postData.author?.avatar_url || ''}" alt="${postData.author?.name}">
-                            <div class="fx-post-author">
-                                <div class="fx-post-name">${searchQuery ? highlightTextOnly(postData.author?.name || 'Unknown', searchQuery) : postData.author?.name || 'Unknown'}</div>
-                                <div class="fx-post-handle">${searchQuery ? highlightTextOnly(`@${postData.author?.screen_name || 'unknown'}`, searchQuery) : `@${postData.author?.screen_name || 'unknown'}`}</div>
-                            </div>
-                        </div>
-                        <div class="fx-post-content">
-                            ${postData.text ? `<p>${highlightSearchText(postData.text, searchQuery)}</p>` : ''}
-                        </div>
-                    </div>
-                </div>
-                <div class="fx-post-footer">
-                    <div class="fx-post-stats">
-                        <span>❤️ ${formatNumber(postData.likes || 0)}</span>
-                        <span>🔁 ${formatNumber(postData.reposts || 0)}</span>
-                        <span>💬 ${formatNumber(postData.replies || 0)}</span>
-                    </div>
-                    <div class="fx-post-date">${formatDate(postData.created_at)}</div>
-                </div>
+            <div class="fx-post-content">
+                <p>${postData.text ? highlightSearchText(postData.text, searchQuery) : ''}</p>
+                ${postData.media?.photos?.length ? renderPhotos(postData.media.photos) : ''}
+                ${postData.media?.videos?.length ? renderVideo(postData.media.videos[0]) : ''}
             </div>
-        `;
-    }
+        </div>
+    `;
 
     container.innerHTML = postHTML;
     container.classList.add('post-loaded');

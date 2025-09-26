@@ -35,6 +35,7 @@
     align-items: center;
     gap: 10px;
     margin-bottom: 8px;
+    position: relative;
 }
 
 .fx-post-avatar {
@@ -47,11 +48,14 @@
 .fx-post-author {
     flex: 1;
     min-width: 0; /* Allow text to truncate */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .fx-post-name {
     font-weight: 700;
-    font-size: 16px;  /* Consistent with history page */
+    font-size: 16px;
     color: var(--text-primary);
     line-height: 1.2;
     white-space: nowrap;
@@ -61,7 +65,7 @@
 
 .fx-post-handle {
     color: var(--text-secondary);
-    font-size: 15px;  /* Consistent with history page */
+    font-size: 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -80,31 +84,22 @@
     word-wrap: break-word;
 }
 
-/* Footer with stats and date */
-.fx-post-footer {
+/* Removed footer and stats styles as they are no longer needed */
+
+.fx-post-datetime {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-color);
-    font-size: 15px;  /* Consistent with history page */
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: auto;  /* Push to the right */
+    flex-shrink: 0;  /* Prevent shrinking */
+    gap: 2px;
+}
+
+.fx-post-date-day,
+.fx-post-date-time {
+    font-size: 13px;
     color: var(--text-secondary);
-}
-
-.fx-post-stats {
-    display: flex;
-    gap: 16px;
-}
-
-.fx-post-stats span {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
-
-.fx-post-date {
-    font-size: 15px;  /* Consistent with history page */
+    white-space: nowrap;
 }
 
 /* Links in post content */
@@ -203,20 +198,6 @@ body.dark-theme .search-highlight {
 .skeleton-line:nth-child(2) { width: 90%; }
 .skeleton-line:nth-child(3) { width: 75%; }
 
-.skeleton-actions {
-    display: flex;
-    gap: 20px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-color);
-}
-
-.skeleton-action {
-    width: 40px;
-    height: 12px;
-    background: var(--skeleton-primary);
-    border-radius: 4px;
-    animation: pulse 1.5s infinite;
-}
 
 @keyframes pulse {
     0%, 100% {

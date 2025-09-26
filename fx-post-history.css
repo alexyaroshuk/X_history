@@ -6,40 +6,56 @@
     padding: 0;
     background: transparent;
     border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .list-view .fx-post:hover {
     background: transparent;
 }
 
-.list-view .fx-post-wrapper {
-    display: flex;
-    gap: 1rem;
+/* List view header - same as grid view */
+.list-view .fx-post-header {
+    margin-bottom: 0;
 }
 
-.list-view .fx-post-main {
+/* List view content - 2 column layout */
+.list-view .fx-post-content {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.list-view .fx-post-content p {
     flex: 1;
-    display: flex;
-    flex-direction: column;
+    margin: 0;
 }
 
-.list-view .fx-post-media-container {
+/* Hide empty paragraphs in list view */
+.list-view .fx-post-content p:empty {
+    display: none;
+}
+
+/* List view media - column 2 of content */
+.list-view .fx-post-media {
     width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-top: 0;
     flex-shrink: 0;
 }
 
-.list-view .fx-post-media,
-.list-view .fx-post-media-grid {
-    margin-top: 0;
-    width: 100%;
-    height: 100px;
-    object-fit: cover;
-}
-
 .list-view .fx-post-media-grid {
     display: flex;
-    height: 100px;
     gap: 2px;
+    width: 150px;
+    height: 100px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 0;
+    flex-shrink: 0;
 }
 
 .list-view .fx-post-media-grid img {
@@ -48,11 +64,15 @@
     object-fit: cover;
 }
 
-.list-view .fx-post-footer {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: none;
+.list-view .fx-post-content video {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-top: 0;
+    flex-shrink: 0;
 }
+
 
 /* Grid view specific styles */
 .grid-view .fx-post {
