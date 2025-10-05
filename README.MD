@@ -19,22 +19,32 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 
 ## 📦 Tech Stack
 
+- **React 19** - Modern UI framework with hooks
 - **TypeScript** - Type-safe development
+- **Vite** - Lightning-fast build tool and dev server
+- **@crxjs/vite-plugin** - Chrome extension development with HMR
+- **Tailwind CSS** - Utility-first CSS framework
+- **shadcn/ui** - Accessible React component library
 - **Manifest V3** - Latest Chrome extension architecture
 - **IndexedDB** - Local database for post caching
 - **FxTwitter API** - Enhanced post data fetching
-- **ES Modules** - Modern JavaScript modules
-- **Masonry Layout** - Dynamic responsive grid
 
 ## 🛠️ Installation
 
-### For Users
+### For Users (Load Unpacked)
 
-1. **Download** the latest release or clone this repository
-2. **Open Chrome** and navigate to `chrome://extensions/`
-3. **Enable Developer Mode** using the toggle in the top right
-4. **Click "Load unpacked"** and select the extension folder
-5. **Pin the extension** to your toolbar for easy access
+1. **Download** or clone this repository
+2. **Install dependencies and build**:
+   ```bash
+   npm install
+   npm run build
+   ```
+3. **Open Chrome** and navigate to `chrome://extensions/`
+4. **Enable Developer Mode** (toggle in top right)
+5. **Click "Load unpacked"** and select the `dist` folder
+6. **Pin the extension** to your toolbar
+
+> **Note**: This extension is distributed as "load unpacked" for maximum privacy and control. Your data stays completely local.
 
 ### For Developers
 
@@ -46,12 +56,21 @@ cd x-history
 # Install dependencies
 npm install
 
-# Build the TypeScript files
+# Development mode with hot reload
+npm run dev
+
+# Build for production
 npm run build
 
-# Watch for changes during development
-npm run watch
+# Preview production build
+npm run preview
 ```
+
+**Development workflow:**
+- `npm run dev` starts Vite dev server with HMR (Hot Module Replacement)
+- Changes to React components auto-reload
+- Extension reloads automatically with @crxjs/vite-plugin
+- Build output goes to `dist/` folder
 
 ## 💡 Usage
 
@@ -91,47 +110,43 @@ npm run watch
 
 ```
 X_history/
-├── src/                    # TypeScript source files
-│   ├── background.ts       # Service worker for URL tracking
-│   ├── sidebar.ts          # Popup functionality
-│   ├── history.ts          # History page logic
-│   ├── db.ts              # IndexedDB operations
-│   └── shared-post-list.ts # Shared rendering logic
-├── dist/                   # Compiled JavaScript
-├── images/                 # Extension icons
-├── manifest.json          # Manifest V3 configuration
-├── popup.html             # Popup interface
-├── history.html           # History manager page
-├── *.css                  # Stylesheets
-├── package.json           # Dependencies
-└── tsconfig.json          # TypeScript config
+├── src/
+│   ├── popup/             # Popup React app
+│   │   ├── index.html     # Popup entry HTML
+│   │   ├── index.tsx      # React root
+│   │   └── Popup.tsx      # Main popup component
+│   ├── history/           # History page React app
+│   │   ├── index.html     # History entry HTML
+│   │   ├── index.tsx      # React root
+│   │   └── History.tsx    # Main history component
+│   ├── components/        # Shared React components
+│   │   ├── TweetCard.tsx  # Tweet display component
+│   │   └── ui/           # shadcn/ui components
+│   ├── hooks/            # React hooks
+│   ├── utils/            # Utility functions
+│   ├── background.ts     # Service worker
+│   └── db.ts            # IndexedDB operations
+├── dist/                 # Vite build output
+├── images/              # Extension icons
+├── manifest.json        # Manifest V3 config
+├── vite.config.ts       # Vite configuration
+├── tailwind.config.js   # Tailwind configuration
+└── package.json         # Dependencies
 ```
 
 ## 🔧 Development
 
-### Commands
-
-```bash
-# Build TypeScript
-npm run build
-
-# Watch mode for development
-npm run watch
-
-# Clean build directory
-npm run clean
-
-# Development mode (build + watch)
-npm run dev
-```
-
 ### Key Technologies
 
-- **Chrome Storage API** - URL list persistence
+- **React 19** - Component-based UI with latest features
+- **Vite** - Fast builds and instant HMR
+- **@crxjs/vite-plugin** - Chrome extension dev tools
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Pre-built accessible components
+- **Chrome Storage API** - Persistent data storage
 - **IndexedDB** - Full post data caching
 - **FxTwitter API** - Enhanced post metadata
 - **Service Workers** - Background processing (Manifest V3)
-- **MutationObserver** - Dynamic content handling
 
 ## 🔒 Privacy
 
@@ -162,6 +177,53 @@ npm run dev
 - Export creates a JSON file with all post data
 - Import only accepts properly formatted JSON
 - Large imports may take a moment
+
+## 📦 Distribution
+
+This extension is designed for **load unpacked** distribution rather than Chrome Web Store:
+
+### Why Load Unpacked?
+
+- ✅ **Privacy First** - No review process, no external oversight
+- ✅ **Full Control** - Users can inspect and modify code
+- ✅ **Instant Updates** - Just rebuild and reload
+- ✅ **No Restrictions** - Avoid Web Store policies and review delays
+- ✅ **Developer Friendly** - Perfect for power users and developers
+
+### Sharing with Others
+
+To share this extension:
+
+1. **Build the extension:**
+   ```bash
+   npm install
+   npm run build
+   ```
+
+2. **Package the dist folder:**
+   ```bash
+   # Create a zip of the dist folder
+   cd dist
+   zip -r ../x-history-extension.zip .
+   ```
+
+3. **Share instructions with users:**
+   - Extract the zip file
+   - Go to `chrome://extensions/`
+   - Enable Developer Mode
+   - Click "Load unpacked"
+   - Select the extracted folder
+
+### Optional: Chrome Web Store
+
+If you want to publish to Chrome Web Store later:
+
+1. Update `manifest.json` with proper icons and descriptions
+2. Create promotional images (1280x800, 640x400, etc.)
+3. Create a developer account ($5 one-time fee)
+4. Submit for review (1-2 weeks initial review)
+
+For now, load unpacked is recommended for this privacy-focused tool.
 
 ## 🤝 Contributing
 
