@@ -1,55 +1,12 @@
-interface FxAuthor {
-  name: string;
-  screen_name: string;
-  avatar_url: string;
-}
+class PostDatabase {
+  constructor() {
+    this.dbName = 'XHistoryDB';
+    this.dbVersion = 1;
+    this.storeName = 'posts';
+    this.db = null;
+  }
 
-interface FxPhoto {
-  url: string;
-}
-
-interface FxVideo {
-  url: string;
-}
-
-interface FxMedia {
-  photos?: FxPhoto[];
-  videos?: FxVideo[];
-}
-
-export interface FxPostData {
-  text?: string;
-  author?: FxAuthor;
-  created_at: string;
-  media?: FxMedia;
-}
-
-export interface PostData {
-  url: string;
-  html?: string;
-  text?: string;
-  username?: string;
-  timestamp: number;
-  authorName?: string;
-  authorUrl?: string;
-  providerName?: string;
-  providerUrl?: string;
-  type?: string;
-  width?: number;
-  height?: number;
-  version?: string;
-  cacheControl?: string;
-  fxData?: FxPostData;
-  savedAt: number;
-}
-
-export class PostDatabase {
-  private dbName = 'XHistoryDB';
-  private dbVersion = 1;
-  private storeName = 'posts';
-  private db: IDBDatabase | null = null;
-
-  async init(): Promise<IDBDatabase> {
+  async init() {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
@@ -65,7 +22,7 @@ export class PostDatabase {
       };
 
       request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
+        const db = event.target.result;
 
         if (!db.objectStoreNames.contains(this.storeName)) {
           const objectStore = db.createObjectStore(this.storeName, {
@@ -82,14 +39,14 @@ export class PostDatabase {
     });
   }
 
-  async savePost(postData: Partial<PostData> & { url: string }): Promise<PostData> {
+  async savePost(postData) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
 
-      const post: PostData = {
+      const post = {
         url: postData.url,
         html: postData.html,
         text: postData.text || this.extractTextFromHtml(postData.html),
@@ -104,7 +61,7 @@ export class PostDatabase {
         height: postData.height,
         version: postData.version,
         cacheControl: postData.cacheControl,
-        fxData: postData.fxData,
+        fxData: postData.fxData,  // Save FxEmbed data if available
         savedAt: Date.now()
       };
 
@@ -122,11 +79,11 @@ export class PostDatabase {
     });
   }
 
-  async getPost(url: string): Promise<PostData | undefined> {
+  async getPost(url) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.get(url);
 
@@ -140,11 +97,11 @@ export class PostDatabase {
     });
   }
 
-  async getAllPosts(): Promise<PostData[]> {
+  async getAllPosts() {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+      const transaction = this.db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
       const request = store.getAll();
 
@@ -158,7 +115,7 @@ export class PostDatabase {
     });
   }
 
-  async searchPosts(query: string): Promise<PostData[]> {
+  async searchPosts(query) {
     if (!this.db) await this.init();
 
     const allPosts = await this.getAllPosts();
@@ -183,11 +140,11 @@ export class PostDatabase {
     return filteredPosts.sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  async deletePost(url: string): Promise<void> {
+  async deletePost(url) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.delete(url);
 
@@ -202,11 +159,11 @@ export class PostDatabase {
     });
   }
 
-  async clearAll(): Promise<void> {
+  async clearAll() {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
+      const transaction = this.db.transaction([this.storeName], 'readwrite');
       const store = transaction.objectStore(this.storeName);
       const request = store.clear();
 
@@ -221,7 +178,7 @@ export class PostDatabase {
     });
   }
 
-  private extractTextFromHtml(html?: string): string {
+  extractTextFromHtml(html) {
     if (!html) return '';
 
     const tempDiv = document.createElement('div');
@@ -244,7 +201,7 @@ export class PostDatabase {
     return text.trim();
   }
 
-  private extractUsernameFromUrl(url: string): string {
+  extractUsernameFromUrl(url) {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split('/').filter(Boolean);
@@ -257,13 +214,13 @@ export class PostDatabase {
     return '';
   }
 
-  async getPostsByUrls(urls: string[]): Promise<PostData[]> {
+  async getPostsByUrls(urls) {
     if (!this.db) await this.init();
 
-    return new Promise((resolve) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction([this.storeName], 'readonly');
       const store = transaction.objectStore(this.storeName);
-      const posts: PostData[] = [];
+      const posts = [];
       let completed = 0;
 
       if (urls.length === 0) {
@@ -295,4 +252,8 @@ export class PostDatabase {
   }
 }
 
-export const postDB = new PostDatabase();
+const postDB = new PostDatabase();
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = PostDatabase;
+}

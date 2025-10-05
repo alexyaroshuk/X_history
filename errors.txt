@@ -1,5 +1,5 @@
-Uncaught SyntaxError: Unexpected token 'export'
+Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
 Context
-popup.html
+service-worker-loader.js
 Stack Trace
-dist/theme-init.js:19 (anonymous function)
+service-worker-loader.js:0 (anonymous function)

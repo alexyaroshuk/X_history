@@ -15,8 +15,7 @@
     "https://api.fxtwitter.com/*"
   ],
   "background": {
-    "service_worker": "dist/background.js",
-    "type": "module"
+    "service_worker": "service-worker.js"
   },
   "action": {
     "default_icon": {
@@ -25,32 +24,13 @@
       "128": "images/128.png"
     },
     "default_title": "X History",
-    "default_popup": "popup.html"
+    "default_popup": "src/popup/index.html"
   },
   "icons": {
     "16": "images/16.png",
     "48": "images/48.png",
     "128": "images/128.png"
   },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "dist/sidebar.js",
-        "popup.html",
-        "styles.css",
-        "dist/theme-init.js",
-        "dist/db.js",
-        "history.html",
-        "dist/history.js",
-        "history-styles.css",
-        "fx-post-shared.css",
-        "fx-post-popup.css",
-        "fx-post-history.css",
-        "dist/shared-post-list.js"
-      ],
-      "matches": ["<all_urls>"]
-    }
-  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

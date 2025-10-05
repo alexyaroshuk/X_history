@@ -1,28 +1,28 @@
-import { postDB, FxPostData } from './db.js';
+// Shared post list component for both history page and popup
+// This module provides reusable functions for rendering posts using FxEmbed
 
-interface FxTwitterResponse {
-  tweet: FxPostData;
-}
-
-export function extractPostId(url: string): string | null {
+// Extract post ID from URL
+function extractPostId(url) {
     const match = url.match(/status\/(\d+)/);
     return match ? match[1] : null;
 }
 
-export function formatNumber(num: number): string {
+// Format large numbers (1K, 1M, etc.)
+function formatNumber(num) {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
     return num.toString();
 }
 
-export function formatDate(dateStr: string): string {
+// Format date to readable format with time
+function formatDate(dateStr) {
     const date = new Date(dateStr);
-    const dateOptions: Intl.DateTimeFormatOptions = {
+    const dateOptions = {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
     };
-    const timeOptions: Intl.DateTimeFormatOptions = {
+    const timeOptions = {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
@@ -32,21 +32,28 @@ export function formatDate(dateStr: string): string {
     return `<span class="fx-post-date-day">${dateString}</span><span class="fx-post-date-time">${timeString}</span>`;
 }
 
-export function highlightSearchText(text: string, searchQuery: string): string {
+// Helper function to highlight search matches
+function highlightSearchText(text, searchQuery) {
     if (!text) return text;
 
+    // If no search query, just linkify the text
     if (!searchQuery) {
         return linkifyText(text);
     }
 
+    // First apply linkify
     let result = linkifyText(text);
 
+    // Then apply highlighting (avoiding links)
     const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+    // Split by HTML tags to avoid highlighting inside them
     const parts = result.split(/(<[^>]*>)/);
     const highlighted = parts.map((part, index) => {
+        // Skip HTML tags (odd indices after split)
         if (index % 2 === 1) return part;
 
+        // Highlight text in non-tag parts
         const regex = new RegExp(`(${escapedQuery})`, 'gi');
         return part.replace(regex, '<mark class="search-highlight">$1</mark>');
     });
@@ -54,7 +61,8 @@ export function highlightSearchText(text: string, searchQuery: string): string {
     return highlighted.join('');
 }
 
-export function highlightTextOnly(text: string, searchQuery: string): string {
+// Simple highlight for plain text (no linkification)
+function highlightTextOnly(text, searchQuery) {
     if (!searchQuery || !text) return text;
 
     const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -62,14 +70,16 @@ export function highlightTextOnly(text: string, searchQuery: string): string {
     return text.replace(regex, '<mark class="search-highlight">$1</mark>');
 }
 
-export function linkifyText(text: string): string {
+// Linkify URLs, mentions, and hashtags
+function linkifyText(text) {
     return text
         .replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" rel="noopener" class="post-link">$&</a>')
         .replace(/@(\w+)/g, '<a href="https://x.com/$1" target="_blank" rel="noopener" class="post-mention">@$1</a>')
         .replace(/#(\w+)/g, '<a href="https://x.com/hashtag/$1" target="_blank" rel="noopener" class="post-hashtag">#$1</a>');
 }
 
-function renderPhotos(photos: Array<{ url: string }>): string {
+// Render photos
+function renderPhotos(photos) {
     if (!photos || photos.length === 0) return '';
 
     if (photos.length === 1) {
@@ -82,7 +92,8 @@ function renderPhotos(photos: Array<{ url: string }>): string {
     `;
 }
 
-function renderVideo(video: { url: string } | undefined): string {
+// Render video
+function renderVideo(video) {
     if (!video) return '';
     return `
         <video class="fx-post-media" controls>
@@ -91,11 +102,13 @@ function renderVideo(video: { url: string } | undefined): string {
     `;
 }
 
-export async function createFxPostElement(url: string, searchQuery = ''): Promise<HTMLElement> {
+// Create FxEmbed post element
+async function createFxPostElement(url, searchQuery = '') {
     const div = document.createElement('div');
     div.className = 'post-item';
     div.dataset.postUrl = url;
 
+    // Add skeleton loader initially
     div.innerHTML = `
         <div class="post-skeleton">
             <div class="skeleton-header">
@@ -113,18 +126,21 @@ export async function createFxPostElement(url: string, searchQuery = ''): Promis
         </div>
     `;
 
+    // Fetch post data
     const postId = extractPostId(url);
     if (!postId) {
         renderFallback(div, url);
         return div;
     }
 
+    // Check if post is cached in IndexedDB
     const cachedPost = await postDB.getPost(url);
     if (cachedPost && cachedPost.fxData) {
         renderFxPost(div, cachedPost.fxData, url, searchQuery);
         return div;
     }
 
+    // Fetch from FxEmbed API
     try {
         const response = await fetch(`https://api.fxtwitter.com/status/${postId}`);
 
@@ -132,11 +148,13 @@ export async function createFxPostElement(url: string, searchQuery = ''): Promis
             throw new Error(`FxTwitter API returned ${response.status}: ${response.statusText}`);
         }
 
-        const data: FxTwitterResponse = await response.json();
+        const data = await response.json();
 
+        // FxTwitter API returns data.tweet
         const postData = data?.tweet;
 
         if (postData) {
+            // Save to IndexedDB cache
             await postDB.savePost({
                 url: url,
                 fxData: postData,
@@ -158,9 +176,12 @@ export async function createFxPostElement(url: string, searchQuery = ''): Promis
     return div;
 }
 
-export function renderFxPost(container: HTMLElement, postData: FxPostData, url: string, searchQuery = ''): void {
+// Render FxEmbed post
+function renderFxPost(container, postData, url, searchQuery = '') {
     const isDarkMode = document.body.classList.contains("dark-theme");
+    const hasMedia = postData.media?.photos?.length || postData.media?.videos?.length;
 
+    // Single unified layout for all posts
     let postHTML = `
         <div class="fx-post ${isDarkMode ? 'dark' : 'light'}" data-post-url="${url}">
             <div class="fx-post-header">
@@ -182,10 +203,12 @@ export function renderFxPost(container: HTMLElement, postData: FxPostData, url: 
     container.innerHTML = postHTML;
     container.classList.add('post-loaded');
 
+    // Make the post clickable
     const postElement = container.querySelector('.fx-post');
     if (postElement) {
         postElement.addEventListener('click', (e) => {
-            if ((e.target as HTMLElement).tagName === 'A' || (e.target as HTMLElement).closest('a')) {
+            // Don't open link if clicking on an existing link inside the post
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
                 return;
             }
             window.open(url, '_blank');
@@ -193,7 +216,8 @@ export function renderFxPost(container: HTMLElement, postData: FxPostData, url: 
     }
 }
 
-function renderFallback(container: HTMLElement, url: string): void {
+// Render fallback for failed posts
+function renderFallback(container, url) {
     const urlParts = url.split('/');
     const username = urlParts[3] || 'Unknown';
 
@@ -207,7 +231,12 @@ function renderFallback(container: HTMLElement, url: string): void {
     container.classList.add('post-loaded');
 }
 
-
-if (typeof window !== 'undefined') {
-    (window as any).postDB = postDB;
+// Export for use in other files
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        createFxPostElement,
+        extractPostId,
+        formatNumber,
+        formatDate
+    };
 }
