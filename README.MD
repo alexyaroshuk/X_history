@@ -21,13 +21,14 @@ A Chrome extension that tracks and saves X (Twitter) posts you view, with full-t
 
 - **React 19** - Modern UI framework with hooks
 - **TypeScript** - Type-safe development
-- **Vite** - Lightning-fast build tool and dev server
+- **Vite 7** - Lightning-fast build tool and dev server
 - **@crxjs/vite-plugin** - Chrome extension development with HMR
 - **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - Accessible React component library
+- **shadcn/ui** - Accessible React component library (Button, Card, Input, ScrollArea)
+- **Lucide React** - Icon library
 - **Manifest V3** - Latest Chrome extension architecture
-- **IndexedDB** - Local database for post caching
-- **FxTwitter API** - Enhanced post data fetching
+- **IndexedDB** - Local database for post caching with full-text search
+- **FxTwitter API** - Enhanced post data with media, engagement stats, and metadata
 
 ## 🛠️ Installation
 
@@ -111,72 +112,107 @@ npm run preview
 ```
 X_history/
 ├── src/
-│   ├── popup/             # Popup React app
+│   ├── popup/             # Popup React app (500x600px)
 │   │   ├── index.html     # Popup entry HTML
 │   │   ├── index.tsx      # React root
-│   │   └── Popup.tsx      # Main popup component
-│   ├── history/           # History page React app
+│   │   └── Popup.tsx      # Main popup component with infinite scroll
+│   ├── history/           # History page React app (full-page manager)
 │   │   ├── index.html     # History entry HTML
 │   │   ├── index.tsx      # React root
-│   │   └── History.tsx    # Main history component
+│   │   └── History.tsx    # Main history component with grid/list views
 │   ├── components/        # Shared React components
-│   │   ├── TweetCard.tsx  # Tweet display component
-│   │   └── ui/           # shadcn/ui components
-│   ├── hooks/            # React hooks
-│   ├── utils/            # Utility functions
-│   ├── background.ts     # Service worker
-│   └── db.ts            # IndexedDB operations
-├── dist/                 # Vite build output
-├── images/              # Extension icons
-├── manifest.json        # Manifest V3 config
-├── vite.config.ts       # Vite configuration
-├── tailwind.config.js   # Tailwind configuration
-└── package.json         # Dependencies
+│   │   ├── TweetCard.tsx  # Rich tweet display with media, engagement stats
+│   │   └── ui/            # shadcn/ui components (button, card, input, scroll-area)
+│   ├── hooks/             # React hooks
+│   │   └── useTweetData.ts # FxTwitter API hook with localStorage cache
+│   ├── utils/             # Utility functions
+│   │   └── enrichPosts.ts # Post enrichment utilities
+│   ├── background.ts      # Service worker (Manifest V3) - tracks x.com/*/status/*
+│   ├── db.ts              # IndexedDB operations with full-text search
+│   ├── sidebar.ts         # Legacy popup script (not used in React version)
+│   └── index.css          # Global Tailwind styles
+├── dist/                  # Vite build output (load this folder)
+├── images/                # Extension icons (16, 48, 128)
+├── manifest.json          # Manifest V3 config
+├── vite.config.ts         # Vite configuration with @crxjs/vite-plugin
+├── tailwind.config.js     # Tailwind configuration
+├── tsconfig.json          # TypeScript configuration
+└── package.json           # Dependencies
 ```
 
 ## 🔧 Development
 
-### Key Technologies
+### Key Technologies & Architecture
 
-- **React 19** - Component-based UI with latest features
-- **Vite** - Fast builds and instant HMR
-- **@crxjs/vite-plugin** - Chrome extension dev tools
-- **Tailwind CSS** - Utility-first styling
+- **React 19** - Component-based UI with latest features and hooks
+- **Vite 7** - Fast builds (~2s) and instant HMR
+- **@crxjs/vite-plugin** - Chrome extension dev tools with hot reload
+- **Tailwind CSS** - Utility-first styling with dark mode support
 - **shadcn/ui** - Pre-built accessible components
-- **Chrome Storage API** - Persistent data storage
-- **IndexedDB** - Full post data caching
-- **FxTwitter API** - Enhanced post metadata
-- **Service Workers** - Background processing (Manifest V3)
+- **Chrome Storage API** - Stores URLs array (`urls` key)
+- **IndexedDB** - Caches full post data with text/username indices for search
+- **FxTwitter API** - Fetches enhanced post metadata (no auth required)
+- **Service Workers** - Background URL tracking via `webNavigation` API
+- **localStorage** - Caches tweet data by post ID to reduce API calls
+
+### Data Flow
+1. **Background script** monitors x.com navigation → saves URLs to chrome.storage
+2. **Popup/History** loads URLs → fetches from IndexedDB cache or FxTwitter API
+3. **TweetCard** displays rich content with useTweetData hook → caches in localStorage
 
 ## 🔒 Privacy
 
-- **100% Local Storage** - All data stays in your browser
-- **No External Servers** - Only connects to X.com and FxTwitter API
-- **No Analytics/Tracking** - Your privacy is respected
-- **Easy Data Removal** - Clear all data with one click
-- **Export Your Data** - Full control over your information
+- **100% Local Storage** - All data stays in your browser (chrome.storage, IndexedDB, localStorage)
+- **No External Servers** - Only connects to X.com (for tracking) and FxTwitter API (for enrichment)
+- **No Analytics/Tracking** - No telemetry, no third-party trackers
+- **No Authentication** - FxTwitter API requires no keys or login
+- **Easy Data Removal** - Clear all data with one click (clears all storage layers)
+- **Export Your Data** - Full control with JSON export/import
+- **Open Source** - Inspect the code, modify as needed
 
 ## 🐛 Troubleshooting
 
-### Posts not showing in grid view?
-- Wait a moment for posts to load
-- Try switching to list view and back
-- Check browser console for errors
+### Posts not being tracked?
+- **Solution**: Ensure you're on `x.com` (not `twitter.com`)
+- Check extension permissions in `chrome://extensions/`
+- Look for navigation to URLs matching `x.com/{username}/status/{id}`
+- Check background service worker logs in extension details
+
+### Posts not showing rich content?
+- **Solution**: FxTwitter API may be rate-limited or unavailable
+- Posts will fallback to simple URL display
+- Wait a few minutes and refresh
+- Check browser console (F12) for API errors
 
 ### Search not finding posts?
-- Ensure posts are fully loaded first
-- Search is case-insensitive
-- Try simpler search terms
+- **Solution**: Search looks in IndexedDB cached posts only
+- Posts must be viewed first (not just tracked) to be searchable
+- Search is case-insensitive and matches text/username
+- Try simpler search terms or reload posts
 
-### Extension not tracking posts?
-- Make sure you're on x.com (not twitter.com)
-- Check extension permissions
-- Reload the extension
+### Theme not applying?
+- **Solution**: Check system theme preference
+- Use manual theme toggle (🌙/☀️ button)
+- Theme preference saved in localStorage
 
 ### Import/Export issues?
-- Export creates a JSON file with all post data
-- Import only accepts properly formatted JSON
-- Large imports may take a moment
+- **Export** creates JSON with all post URLs and metadata
+- **Import** only accepts valid JSON arrays
+- Large imports (>1000 posts) may take 10-30 seconds
+- Extension may be unresponsive during import
+
+### Extension icon not showing?
+- **Solution**: Pin the extension in Chrome toolbar
+- Check if extension is enabled in `chrome://extensions/`
+- Reload the extension
+
+## ⚠️ Known Issues & Technical Debt
+
+- **Dual Storage Systems**: Both `urls` array (chrome.storage) and `trackedPosts` (chrome.storage) exist with migration logic - consider consolidating
+- **Legacy Code**: [sidebar.ts](src/sidebar.ts) contains old non-React popup implementation (kept for reference, not actively used)
+- **API Rate Limits**: FxTwitter API has no documented rate limits but may throttle - implement exponential backoff if needed
+- **Media Display**: Videos may not work for private/deleted posts
+- **Pagination**: History page loads all posts at once - consider virtualizing for 10k+ posts
 
 ## 📦 Distribution
 

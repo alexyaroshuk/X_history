@@ -7,7 +7,8 @@
       "Bash(move sidebar-new.js sidebar.js)",
       "Bash(move:*)",
       "Bash(npm install)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

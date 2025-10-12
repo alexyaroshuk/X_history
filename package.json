@@ -1,6 +1,7 @@
 {
   "name": "x-history",
   "version": "1.1.0",
+  "type": "module",
   "description": "Chrome extension for tracking X post history",
   "scripts": {
     "dev": "vite",
